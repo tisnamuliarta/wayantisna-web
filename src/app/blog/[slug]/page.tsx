@@ -76,7 +76,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
         <main className="mx-auto w-full max-w-[1300px] px-4 py-10 md:px-8 md:py-12">
             <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
-            <div className="grid items-start gap-10 xl:grid-cols-[minmax(0,1fr)_290px]">
+            <div className="grid gap-10 xl:grid-cols-[minmax(0,1fr)_290px]">
                 <article>
                     <Link
                         href="/blog"
@@ -121,8 +121,8 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                     </div>
                 </article>
 
-                <aside className="hidden self-start xl:block">
-                    <div className="sticky top-24 max-h-[calc(100vh-7rem)] space-y-4 overflow-y-auto pr-1">
+                <aside className="hidden xl:block">
+                    <div className="sticky top-24 space-y-4">
                         <InlineTOC
                             items={tocItems}
                             defaultOpen
