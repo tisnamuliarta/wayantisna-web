@@ -1,12 +1,13 @@
 'use client';
 
+import type { ComponentType } from 'react';
 import { ColorPickerTool, CssGradientTool, CssLayoutGeneratorTool } from './renderers/design-tools';
 import { Base64Tool, CronTesterTool, JwtTool, RegexTesterTool, UrlTool } from './renderers/encoder-tester-tools';
 import { JsonFormatterTool, HtmlFormatterTool, SqlFormatterTool, XmlYamlFormatterTool } from './renderers/formatter-tools';
 import { CodeDiffTool, JsonDiffTool, LoremTool, PasswordTool, QrCodeTool, UuidTool } from './renderers/generator-compare-tools';
 import { ToolCard } from './renderers/shared';
 
-const renderers: Record<string, () => JSX.Element> = {
+const renderers: Record<string, ComponentType> = {
     'color-picker-converter': ColorPickerTool,
     'css-gradient-generator': CssGradientTool,
     'css-grid-flexbox-generator': CssLayoutGeneratorTool,
