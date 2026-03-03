@@ -173,19 +173,18 @@ body::before {
 }
 
 .blog-article pre {
-  margin: 1.25rem 0;
-  overflow-x: auto;
-  border-radius: 14px;
-  border: 1px solid rgb(148 163 184 / 30%);
-  background: #020617;
-  padding: 1rem;
+  margin: 0;
 }
 
-.blog-article code {
+.blog-article :not(pre) > code {
   border-radius: 6px;
   background: rgb(15 23 42 / 88%);
   padding: 0.2rem 0.45rem;
   color: #d7f2ff;
+}
+
+.blog-article figure.shiki {
+  margin: 1.25rem 0;
 }
 
 .dark .blog-article {
