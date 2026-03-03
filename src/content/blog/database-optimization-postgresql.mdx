@@ -1,0 +1,71 @@
+---
+title: Database Optimization Techniques for PostgreSQL
+description: Discover query optimization, indexing strategies, and monitoring tools for better database performance.
+author: Wayan Tisna
+publishedAt: 2026-02-20
+tags:
+  - Database
+  - PostgreSQL
+  - Performance
+  - Optimization
+---
+
+## Introduction
+
+Database performance is critical to application success. This guide covers essential optimization techniques for PostgreSQL.
+
+## Indexing Strategies
+
+Proper indexing can dramatically improve query performance:
+
+```sql
+-- Create a simple index
+CREATE INDEX idx_users_email ON users(email);
+
+-- Create a composite index
+CREATE INDEX idx_posts_user_created ON posts(user_id, created_at DESC);
+
+-- Create a partial index
+CREATE INDEX idx_active_users ON users(email) 
+WHERE status = 'active';
+```
+
+## Query Optimization
+
+### Using EXPLAIN ANALYZE
+
+```sql
+EXPLAIN ANALYZE
+SELECT u.name, COUNT(p.id) as post_count
+FROM users u
+LEFT JOIN posts p ON u.id = p.user_id
+GROUP BY u.id
+ORDER BY post_count DESC;
+```
+
+### Optimization Techniques
+
+1. **Use Appropriate JOINs**: INNER vs LEFT JOIN
+2. **Filter Early**: Apply WHERE clauses before aggregation
+3. **Limit Results**: Use LIMIT for pagination
+4. **Denormalize When Necessary**: Cache computed values
+
+## Monitoring Performance
+
+```sql
+-- Check slow queries
+SELECT query, calls, mean_time, total_time
+FROM pg_stat_statements
+ORDER BY mean_time DESC
+LIMIT 10;
+
+-- Check table sizes
+SELECT schemaname, tablename, pg_size_pretty(pg_total_relation_size(schemaname||'.'||tablename))
+FROM pg_tables
+WHERE schemaname NOT IN ('pg_catalog', 'information_schema')
+ORDER BY pg_total_relation_size(schemaname||'.'||tablename) DESC;
+```
+
+## Conclusion
+
+Regular monitoring, proper indexing, and query optimization will keep your PostgreSQL database performant and responsive.

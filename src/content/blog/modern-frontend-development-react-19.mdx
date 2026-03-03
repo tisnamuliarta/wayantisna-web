@@ -1,0 +1,78 @@
+---
+title: Modern Frontend Development with React 19
+description: Explore the latest features in React 19 and how they improve developer experience and performance.
+author: Wayan Tisna
+publishedAt: 2026-02-28
+tags:
+  - React
+  - Frontend
+  - JavaScript
+  - Modern Development
+---
+
+## What's New in React 19
+
+React 19 introduces several exciting features that enhance both developer experience and application performance.
+
+## Server Components
+
+Server Components allow you to render components on the server, reducing JavaScript sent to the client:
+
+```jsx
+export default async function HomePage() {
+  const data = await fetchData();
+  
+  return (
+    <div>
+      <h1>{data.title}</h1>
+      <ClientComponent initialData={data} />
+    </div>
+  );
+}
+```
+
+## Enhanced Hooks
+
+New hooks provide better state management and side effect handling:
+
+```jsx
+function MyComponent() {
+  const [count, setCount] = useState(0);
+  const [name, setName] = useState('');
+  
+  return (
+    <>
+      <input value={name} onChange={(e) => setName(e.target.value)} />
+      <button onClick={() => setCount(count + 1)}>
+        Count: {count}
+      </button>
+    </>
+  );
+}
+```
+
+## Actions
+
+React 19 introduces a new way to handle form submissions and mutations:
+
+```jsx
+'use server'
+
+async function updateProfile(formData) {
+  const name = formData.get('name');
+  await db.update('users', { name });
+}
+
+export function ProfileForm() {
+  return (
+    <form action={updateProfile}>
+      <input name="name" />
+      <button type="submit">Update Profile</button>
+    </form>
+  );
+}
+```
+
+## Conclusion
+
+React 19 brings powerful features that make it easier to build performant, maintainable applications. Embrace server components, new hooks, and actions for a modern development experience.

@@ -1,0 +1,72 @@
+---
+title: Building Scalable REST APIs with Laravel
+description: Learn best practices for designing robust REST APIs that can handle growth and complexity.
+author: Wayan Tisna
+publishedAt: 2026-03-03
+tags: 
+  - Laravel
+  - REST API
+  - Backend
+  - Performance
+---
+
+## Introduction
+
+REST APIs are the backbone of modern web applications. In this article, we'll explore how to build scalable, maintainable REST APIs using Laravel.
+
+## Key Principles
+
+1. **Statelessness**: Each request should contain all information needed
+2. **Resource-Oriented Design**: Focus on resources, not actions
+3. **Proper HTTP Methods**: Use GET, POST, PUT, DELETE appropriately
+4. **Status Codes**: Return meaningful HTTP status codes
+
+## Implementation Best Practices
+
+### 1. Route Organization
+
+```php
+Route::group(['prefix' => 'v1'], function () {
+    Route::apiResource('posts', PostController::class);
+    Route::apiResource('users', UserController::class);
+});
+```
+
+### 2. Request Validation
+
+Use Laravel's Form Request classes:
+
+```php
+class StorePostRequest extends FormRequest
+{
+    public function rules(): array
+    {
+        return [
+            'title' => 'required|string|max:255',
+            'content' => 'required|string',
+            'published' => 'boolean',
+        ];
+    }
+}
+```
+
+### 3. Resource Transformation
+
+```php
+class PostResource extends JsonResource
+{
+    public function toArray($request)
+    {
+        return [
+            'id' => $this->id,
+            'title' => $this->title,
+            'content' => $this->content,
+            'author' => new UserResource($this->author),
+        ];
+    }
+}
+```
+
+## Conclusion
+
+Building scalable APIs requires careful planning, proper validation, and consistent response formatting. Follow these best practices to create APIs that grow with your application.
