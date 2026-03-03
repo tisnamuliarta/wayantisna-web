@@ -3,10 +3,10 @@ import { ArrowRight, Github, Linkedin, Twitter, Mail } from 'lucide-react'
 
 export function HeroSection() {
     return (
-        <section className="min-h-screen flex items-center justify-center bg-gradient-to-br from-white via-blue-50 to-indigo-50 dark:from-slate-950 dark:via-blue-950 dark:to-indigo-950 px-4 md:px-8">
+        <section className="min-h-screen flex items-center justify-center px-4 md:px-8">
             <div className="max-w-4xl w-full text-center">
                 <div className="mb-6">
-                    <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-4xl font-bold text-white">
+                    <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-4xl font-bold text-white shadow-lg">
                         WT
                     </div>
                 </div>
@@ -24,25 +24,25 @@ export function HeroSection() {
                 </p>
 
                 <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-                    <Button size="lg" className="rounded-lg px-8 bg-blue-600 hover:bg-blue-700 text-white">
+                    <Button size="lg" className="rounded-lg px-8 bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white shadow-lg">
                         View My Work <ArrowRight className="ml-2 w-4 h-4" />
                     </Button>
-                    <Button size="lg" variant="outline" className="rounded-lg px-8 border-slate-300 dark:border-slate-600">
+                    <Button size="lg" variant="outline" className="rounded-lg px-8 border-emerald-300 dark:border-emerald-600 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20">
                         Get in Touch
                     </Button>
                 </div>
 
                 <div className="flex justify-center gap-6 pt-8 border-t border-slate-200 dark:border-slate-700">
-                    <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition">
+                    <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="text-slate-600 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition">
                         <Github className="w-6 h-6" />
                     </a>
-                    <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition">
+                    <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="text-slate-600 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition">
                         <Linkedin className="w-6 h-6" />
                     </a>
-                    <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition">
+                    <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="text-slate-600 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition">
                         <Twitter className="w-6 h-6" />
                     </a>
-                    <a href="mailto:wayan@example.com" className="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition">
+                    <a href="mailto:wayan@example.com" className="text-slate-600 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition">
                         <Mail className="w-6 h-6" />
                     </a>
                 </div>

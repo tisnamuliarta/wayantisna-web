@@ -1,8 +1,15 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
 
-export function ThemeProvider({ children }: { children: React.ReactNode }) {
+interface ThemeContextType {
+    theme: 'light' | 'dark'
+    toggleTheme: () => void
+}
+
+const ThemeContext = createContext<ThemeContextType | undefined>(undefined)
+
+export function ThemeProvider({ children }: { children: ReactNode }) {
     const [theme, setTheme] = useState<'light' | 'dark'>('light')
     const [mounted, setMounted] = useState(false)
 
@@ -12,41 +19,39 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
         const initialTheme = storedTheme || (prefersDark ? 'dark' : 'light')
         setTheme(initialTheme)
-        document.documentElement.classList.toggle('dark', initialTheme === 'dark')
+        applyTheme(initialTheme)
     }, [])
+
+    const applyTheme = (newTheme: 'light' | 'dark') => {
+        if (newTheme === 'dark') {
+            document.documentElement.classList.add('dark')
+        } else {
+            document.documentElement.classList.remove('dark')
+        }
+    }
 
     const toggleTheme = () => {
         const newTheme = theme === 'light' ? 'dark' : 'light'
         setTheme(newTheme)
         localStorage.setItem('theme', newTheme)
-        document.documentElement.classList.toggle('dark', newTheme === 'dark')
+        applyTheme(newTheme)
     }
 
-    if (!mounted) return <>{children}</>
+    if (!mounted) {
+        return <>{children}</>
+    }
 
     return (
-        <div data-theme={theme}>
+        <ThemeContext.Provider value={{ theme, toggleTheme }}>
             {children}
-        </div>
+        </ThemeContext.Provider>
     )
 }
 
 export function useTheme() {
-    const [theme, setThemeState] = useState<'light' | 'dark'>('light')
-
-    useEffect(() => {
-        const storedTheme = localStorage.getItem('theme') as 'light' | 'dark' | null
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-        const initialTheme = storedTheme || (prefersDark ? 'dark' : 'light')
-        setThemeState(initialTheme)
-    }, [])
-
-    const toggleTheme = () => {
-        const newTheme = theme === 'light' ? 'dark' : 'light'
-        setThemeState(newTheme)
-        localStorage.setItem('theme', newTheme)
-        document.documentElement.classList.toggle('dark', newTheme === 'dark')
+    const context = useContext(ThemeContext)
+    if (context === undefined) {
+        throw new Error('useTheme must be used within ThemeProvider')
     }
-
-    return { theme, toggleTheme }
+    return context
 }

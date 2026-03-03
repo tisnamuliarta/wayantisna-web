@@ -45,15 +45,15 @@ export function ToolsSection() {
     }
 
     return (
-        <section className="py-20 px-4 md:px-8 bg-white dark:bg-slate-950">
+        <section className="py-20 px-4 md:px-8">
             <div className="max-w-6xl mx-auto">
                 <h2 className="text-4xl md:text-5xl font-bold mb-12 text-slate-900 dark:text-white">Custom Tools</h2>
 
                 <div className="grid md:grid-cols-2 gap-8">
                     {/* Tool 1: LLM Hardware Calculator */}
-                    <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-slate-900 dark:to-slate-800 rounded-lg p-8">
+                    <div className="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 rounded-lg p-8 border border-emerald-200 dark:border-emerald-800/30">
                         <div className="flex items-center mb-6">
-                            <Calculator className="w-8 h-8 text-blue-600 dark:text-blue-400 mr-3" />
+                            <Calculator className="w-8 h-8 text-emerald-600 dark:text-emerald-400 mr-3" />
                             <h3 className="text-2xl font-bold text-slate-900 dark:text-white">LLM Hardware Calculator</h3>
                         </div>
 
@@ -67,7 +67,7 @@ export function ToolsSection() {
                                         key={size}
                                         variant={llmModel === size ? 'default' : 'outline'}
                                         onClick={() => setLlmModel(size as '7b' | '13b' | '70b')}
-                                        className="w-full"
+                                        className={llmModel === size ? "w-full bg-emerald-600 hover:bg-emerald-700" : "w-full border-emerald-300 dark:border-emerald-700 text-emerald-700 dark:text-emerald-400"}
                                     >
                                         {size.toUpperCase()}
                                     </Button>
@@ -79,7 +79,7 @@ export function ToolsSection() {
                             <div>
                                 <div className="flex justify-between mb-2">
                                     <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">Model:</span>
-                                    <span className="text-sm font-bold text-blue-600 dark:text-blue-400">{selectedModel.name}</span>
+                                    <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400">{selectedModel.name}</span>
                                 </div>
                             </div>
 
@@ -115,19 +115,19 @@ export function ToolsSection() {
 
                             <hr className="border-slate-200 dark:border-slate-700" />
 
-                            <div className="bg-blue-100 dark:bg-blue-900/30 rounded p-3">
+                            <div className="bg-emerald-100 dark:bg-emerald-900/30 rounded p-3 border border-emerald-200 dark:border-emerald-800/30">
                                 <div className="flex justify-between">
                                     <span className="font-semibold text-slate-900 dark:text-white">Total VRAM:</span>
-                                    <span className="font-bold text-blue-600 dark:text-blue-400">{totalVram.toFixed(1)} GB</span>
+                                    <span className="font-bold text-emerald-600 dark:text-emerald-400">{totalVram.toFixed(1)} GB</span>
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     {/* Tool 2: API Rate Limiter */}
-                    <div className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-slate-900 dark:to-slate-800 rounded-lg p-8">
+                    <div className="bg-gradient-to-br from-teal-50 to-cyan-50 dark:from-teal-900/20 dark:to-cyan-900/20 rounded-lg p-8 border border-teal-200 dark:border-teal-800/30">
                         <div className="flex items-center mb-6">
-                            <Zap className="w-8 h-8 text-purple-600 dark:text-purple-400 mr-3" />
+                            <Zap className="w-8 h-8 text-teal-600 dark:text-teal-400 mr-3" />
                             <h3 className="text-2xl font-bold text-slate-900 dark:text-white">API Rate Limiter</h3>
                         </div>
 
@@ -143,7 +143,7 @@ export function ToolsSection() {
                                     step="10"
                                     value={rateLimitConfig.requests}
                                     onChange={(e) => setRateLimitConfig({ ...rateLimitConfig, requests: parseInt(e.target.value) })}
-                                    className="w-full"
+                                    className="w-full accent-teal-600"
                                 />
                                 <div className="flex justify-between mt-2">
                                     <span className="text-sm text-slate-600 dark:text-slate-400">Min</span>
