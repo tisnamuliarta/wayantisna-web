@@ -1,21 +1,17 @@
-import { AdBanner } from '@/components/ads-banner';
 import { blogSource } from '@/lib/source';
-import { ArrowRight, CalendarDays } from 'lucide-react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 
+const cardGradients = [
+    'from-cyan-500/70 via-indigo-500/70 to-fuchsia-500/70',
+    'from-orange-500/80 via-amber-500/70 to-rose-500/70',
+    'from-sky-500/75 via-blue-500/70 to-violet-500/70',
+];
+
 export const metadata: Metadata = {
-    title: 'Software Engineering Blog',
+    title: 'Blog',
     description:
-        'Technical blog by Wayan Tisna covering Laravel, REST API design, SQL Server optimization, Next.js architecture, and frontend engineering best practices.',
-    keywords: [
-        'software engineering blog',
-        'Laravel blog',
-        'REST API best practices',
-        'SQL Server performance',
-        'Next.js blog',
-        'frontend development articles',
-    ],
+        'Software development articles by Wayan Tisna about Laravel architecture, REST APIs, SQL performance, and modern frontend engineering.',
     alternates: {
         canonical: '/blog',
     },
@@ -28,68 +24,47 @@ export default function BlogListingPage() {
         .sort((a, b) => new Date(b.data.publishedAt!).getTime() - new Date(a.data.publishedAt!).getTime());
 
     return (
-        <main className="mx-auto w-full max-w-[1200px] px-4 py-10 md:px-8 md:py-14">
-            <header className="mb-8 rounded-3xl border border-slate-200 bg-white/90 p-6 shadow-sm dark:border-slate-800 dark:bg-slate-950/80">
-                <p className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-cyan-700 dark:text-cyan-300">Blog</p>
-                <h1 className="text-balance text-3xl font-semibold text-slate-900 md:text-5xl dark:text-slate-100">
-                    Articles on software architecture, scalable APIs, and web platform delivery
-                </h1>
-                <p className="mt-4 max-w-3xl text-sm leading-relaxed text-slate-600 dark:text-slate-300">
-                    This blog documents real engineering patterns from production projects, with practical notes for backend developers,
-                    full-stack teams, and technical leads.
-                </p>
+        <main className="mx-auto w-full max-w-[1300px] px-4 py-12 md:px-8 md:py-14">
+            <header className="mb-10">
+                <h1 className="text-5xl font-semibold tracking-tight text-slate-900 md:text-7xl dark:text-white">Blog</h1>
             </header>
 
-            <div className="mb-8">
-                <AdBanner className="rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-950" />
-            </div>
-
             {posts.length === 0 ? (
-                <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center text-slate-600 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-300">
-                    Blog posts will appear here once content is published.
+                <div className="rounded-3xl border border-slate-200 bg-white p-8 text-slate-600 dark:border-white/15 dark:bg-white/[0.04] dark:text-slate-300">
+                    No published posts yet.
                 </div>
             ) : (
-                <div className="grid gap-5 lg:grid-cols-2">
-                    {posts.map((post) => (
+                <section className="grid gap-5 lg:grid-cols-3">
+                    {posts.map((post, index) => (
                         <article
                             key={post.url}
-                            className="group rounded-3xl border border-slate-200 bg-white p-5 transition hover:-translate-y-1 hover:shadow-lg dark:border-slate-800 dark:bg-slate-950"
+                            className="overflow-hidden rounded-2xl border border-slate-200 bg-white transition hover:-translate-y-1 hover:border-slate-300 dark:border-white/15 dark:bg-[#0e121a] dark:hover:border-white/30"
                         >
-                            <div className="mb-4 flex flex-wrap gap-2">
-                                {post.data.tags.map((tag: string) => (
-                                    <span
-                                        key={tag}
-                                        className="rounded-full border border-cyan-300 bg-cyan-50 px-2.5 py-1 text-xs font-medium text-cyan-800 dark:border-cyan-900 dark:bg-cyan-950/50 dark:text-cyan-200"
-                                    >
-                                        {tag}
-                                    </span>
-                                ))}
+                            <div className={`h-52 bg-gradient-to-br ${cardGradients[index % cardGradients.length]} p-5`}>
+                                <div className="h-full w-full rounded-xl border border-white/30 bg-black/10 dark:border-white/20 dark:bg-black/20" />
                             </div>
-
-                            <h2 className="text-2xl font-semibold text-slate-900 transition group-hover:text-cyan-700 dark:text-slate-100 dark:group-hover:text-cyan-300">
-                                <Link href={post.url}>{post.data.title}</Link>
-                            </h2>
-                            <p className="mt-3 text-sm leading-relaxed text-slate-600 dark:text-slate-300">{post.data.description}</p>
-
-                            <div className="mt-5 flex items-center justify-between border-t border-slate-200 pt-4 text-sm dark:border-slate-800">
-                                <span className="inline-flex items-center gap-1 text-slate-500 dark:text-slate-400">
-                                    <CalendarDays className="h-4 w-4" />
+                            <div className="space-y-3 p-5">
+                                <p className="text-sm text-slate-600 dark:text-slate-300">{post.data.tags[0] ?? 'Development'}</p>
+                                <h2 className="text-2xl font-semibold text-slate-900 dark:text-white">
+                                    <Link href={post.url} className="transition hover:text-cyan-700 dark:hover:text-cyan-200">
+                                        {post.data.title}
+                                    </Link>
+                                </h2>
+                                <p className="line-clamp-2 text-sm text-slate-600 dark:text-slate-400">{post.data.description}</p>
+                                <p className="text-sm text-slate-700 dark:text-slate-300">
                                     {post.data.publishedAt
                                         ? new Date(post.data.publishedAt).toLocaleDateString('en-US', {
-                                              year: 'numeric',
-                                              month: 'long',
+                                              weekday: 'short',
+                                              month: 'short',
                                               day: 'numeric',
+                                              year: 'numeric',
                                           })
                                         : 'Draft'}
-                                </span>
-                                <Link href={post.url} className="inline-flex items-center text-sm font-semibold text-slate-900 dark:text-slate-100">
-                                    Read post
-                                    <ArrowRight className="ml-1.5 h-4 w-4" />
-                                </Link>
+                                </p>
                             </div>
                         </article>
                     ))}
-                </div>
+                </section>
             )}
         </main>
     );

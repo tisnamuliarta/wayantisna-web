@@ -1,9 +1,9 @@
 import { AdBanner } from '@/components/ads-banner';
 import { blogSource } from '@/lib/source';
 import { InlineTOC } from 'fumadocs-ui/components/inline-toc';
-import { DocsBody, DocsDescription, DocsPage, DocsTitle } from 'fumadocs-ui/layouts/docs/page';
-import { CalendarDays, Tag } from 'lucide-react';
+import { CalendarDays, ChevronLeft } from 'lucide-react';
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getMDXComponents } from '../../../../mdx-components';
 
@@ -70,55 +70,79 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     };
 
     return (
-        <DocsPage toc={tocItems} full tableOfContent={{ enabled: false }} className="mx-auto w-full max-w-[1200px] px-0">
+        <main className="mx-auto w-full max-w-[1300px] px-4 py-10 md:px-8 md:py-12">
             <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
-            <div className="mb-5 flex flex-wrap items-center gap-3 text-sm text-slate-500 dark:text-slate-400">
-                {page.data.publishedAt && (
-                    <span className="inline-flex items-center gap-1">
-                        <CalendarDays className="h-4 w-4" />
-                        {new Date(page.data.publishedAt).toLocaleDateString('en-US', {
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric',
-                        })}
-                    </span>
-                )}
-                {page.data.author && <span>{page.data.author}</span>}
-            </div>
-
-            <DocsTitle className="text-balance">{page.data.title}</DocsTitle>
-            <DocsDescription>{page.data.description}</DocsDescription>
-
-            <div className="not-prose mb-7 mt-4 flex flex-wrap gap-2">
-                {page.data.tags.map((tag: string) => (
-                    <span
-                        key={tag}
-                        className="inline-flex items-center gap-1 rounded-full border border-cyan-300 bg-cyan-50 px-2.5 py-1 text-xs font-medium text-cyan-800 dark:border-cyan-900 dark:bg-cyan-950/40 dark:text-cyan-200"
+            <div className="grid items-start gap-10 xl:grid-cols-[minmax(0,1fr)_290px]">
+                <article>
+                    <Link
+                        href="/blog"
+                        className="mb-6 inline-flex items-center gap-1 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 transition hover:bg-slate-100 dark:border-white/20 dark:bg-white/5 dark:text-slate-200 dark:hover:bg-white/10"
                     >
-                        <Tag className="h-3 w-3" />
-                        {tag}
-                    </span>
-                ))}
-            </div>
+                        <ChevronLeft className="h-4 w-4" />
+                        All Posts
+                    </Link>
 
-            <div className="not-prose mb-6 lg:hidden">
-                <InlineTOC items={tocItems} defaultOpen />
-            </div>
+                    <h1 className="max-w-4xl text-balance text-4xl font-semibold tracking-tight text-slate-900 md:text-6xl dark:text-white">{page.data.title}</h1>
 
-            <div className="grid items-start gap-8 xl:grid-cols-[minmax(0,1fr)_280px]">
-                <DocsBody>
-                    <MDX components={getMDXComponents()} />
-                </DocsBody>
+                    <div className="mt-4 flex flex-wrap items-center gap-3 text-sm text-slate-600 dark:text-slate-300">
+                        <span>{page.data.tags[0] ?? 'Development'}</span>
+                        <span>-</span>
+                        {page.data.publishedAt && (
+                            <span className="inline-flex items-center gap-1">
+                                <CalendarDays className="h-4 w-4" />
+                                {new Date(page.data.publishedAt).toLocaleDateString('en-US', {
+                                    weekday: 'short',
+                                    month: 'short',
+                                    day: 'numeric',
+                                    year: 'numeric',
+                                })}
+                            </span>
+                        )}
+                    </div>
 
-                <aside className="not-prose hidden xl:block">
+                    <div className="mt-8 h-[380px] rounded-2xl border border-slate-200 bg-gradient-to-br from-cyan-500/70 via-indigo-500/70 to-fuchsia-500/70 p-5 dark:border-white/15">
+                        <div className="h-full rounded-xl border border-white/30 bg-black/10 dark:border-white/20 dark:bg-black/25" />
+                    </div>
+
+                    <div className="mt-8 xl:hidden">
+                        <InlineTOC
+                            items={tocItems}
+                            defaultOpen
+                            className="border-slate-200 bg-white text-slate-700 dark:border-white/15 dark:bg-white/[0.04] dark:text-slate-200"
+                        />
+                    </div>
+
+                    <div className="blog-article mt-8">
+                        <MDX components={getMDXComponents()} />
+                    </div>
+                </article>
+
+                <aside className="hidden xl:block">
                     <div className="sticky top-24 space-y-4">
-                        <InlineTOC items={tocItems} defaultOpen />
-                        <AdBanner className="rounded-2xl border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-950" />
-                        <AdBanner className="rounded-2xl border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-950" />
+                        <InlineTOC
+                            items={tocItems}
+                            defaultOpen
+                            className="border-slate-200 bg-white text-slate-700 dark:border-white/15 dark:bg-white/[0.04] dark:text-slate-200"
+                        />
+                        <AdBanner className="rounded-2xl border border-slate-200 bg-white p-3 dark:border-white/15 dark:bg-white/[0.04]" />
+                        <div className="rounded-2xl border border-slate-200 bg-white p-4 dark:border-white/15 dark:bg-white/[0.04]">
+                            <p className="mb-3 text-sm font-semibold text-slate-700 dark:text-slate-200">Share this post</p>
+                            <div className="grid grid-cols-3 gap-2">
+                                <button className="rounded-lg border border-slate-300 bg-slate-50 py-1.5 text-xs text-slate-700 dark:border-white/15 dark:bg-black/20 dark:text-slate-300">
+                                    X
+                                </button>
+                                <button className="rounded-lg border border-slate-300 bg-slate-50 py-1.5 text-xs text-slate-700 dark:border-white/15 dark:bg-black/20 dark:text-slate-300">
+                                    in
+                                </button>
+                                <button className="rounded-lg border border-slate-300 bg-slate-50 py-1.5 text-xs text-slate-700 dark:border-white/15 dark:bg-black/20 dark:text-slate-300">
+                                    copy
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </aside>
             </div>
-        </DocsPage>
+        </main>
     );
 }

@@ -3,43 +3,28 @@
 import { useTheme } from 'next-themes'
 import { Moon, Sun } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { useEffect, useState } from 'react'
+import { cn } from '@/lib/utils'
 
-export function ThemeToggle() {
-    const { theme, setTheme } = useTheme()
-    const [mounted, setMounted] = useState(false)
+interface ThemeToggleProps {
+    className?: string
+}
 
-    // Prevent hydration mismatch
-    useEffect(() => {
-        setMounted(true)
-    }, [])
-
-    if (!mounted) {
-        return (
-            <Button
-                variant="ghost"
-                size="sm"
-                className="rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition"
-                disabled
-            >
-                <Sun className="w-4 h-4" />
-            </Button>
-        )
-    }
+export function ThemeToggle({ className }: ThemeToggleProps) {
+    const { resolvedTheme, setTheme } = useTheme()
 
     return (
         <Button
             variant="ghost"
             size="sm"
-            onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
-            className="rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition"
+            onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
+            className={cn(
+                'rounded-lg transition hover:bg-emerald-100 dark:hover:bg-emerald-900/30',
+                className,
+            )}
             title="Toggle theme"
         >
-            {theme === 'light' ? (
-                <Moon className="w-4 h-4" />
-            ) : (
-                <Sun className="w-4 h-4" />
-            )}
+            <Moon className="h-4 w-4 dark:hidden" />
+            <Sun className="hidden h-4 w-4 dark:block" />
         </Button>
     )
 }

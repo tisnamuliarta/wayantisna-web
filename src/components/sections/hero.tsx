@@ -28,7 +28,7 @@ export function HeroSection() {
                     </h1>
 
                     <p className="max-w-2xl text-pretty text-base leading-relaxed text-slate-700 md:text-lg dark:text-slate-300">
-                        SEO-focused software developer profile showcasing {profile.shortName}'s strengths in Laravel backend development,
+                        SEO-focused software developer profile showcasing the strengths of {profile.shortName} in Laravel backend development,
                         REST API implementation, SQL Server optimization, and scalable frontend delivery with Nuxt.js, Vue.js, React.js, and Next.js.
                     </p>
 

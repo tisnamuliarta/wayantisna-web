@@ -67,7 +67,21 @@ export default function RootLayout({
       <body
         className={`${manrope.variable} ${jetBrainsMono.variable} antialiased text-slate-900 dark:text-white transition-colors duration-300`}
       >
-        <RootProvider>{children}</RootProvider>
+        <RootProvider
+          search={{
+            options: {
+              api: "/api/search",
+              type: "fetch",
+            },
+          }}
+          theme={{
+            attribute: "class",
+            defaultTheme: "system",
+            enableSystem: true,
+          }}
+        >
+          {children}
+        </RootProvider>
       </body>
     </html>
   );

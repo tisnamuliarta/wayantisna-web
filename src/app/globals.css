@@ -15,12 +15,10 @@
   --font-mono: var(--font-jetbrains-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background-color: #030712;
-    --foreground: #f8fafc;
-    --accent: #34d399;
-  }
+.dark {
+  --background-color: #030712;
+  --foreground: #f8fafc;
+  --accent: #34d399;
 }
 
 html {
@@ -44,6 +42,13 @@ body::before {
     radial-gradient(circle at 15% 10%, rgb(16 185 129 / 16%), transparent 33%),
     radial-gradient(circle at 85% 25%, rgb(6 182 212 / 12%), transparent 36%),
     radial-gradient(circle at 40% 85%, rgb(30 64 175 / 10%), transparent 40%);
+}
+
+.dark body::before {
+  background:
+    radial-gradient(circle at 15% 10%, rgb(16 185 129 / 10%), transparent 33%),
+    radial-gradient(circle at 85% 25%, rgb(6 182 212 / 8%), transparent 36%),
+    radial-gradient(circle at 40% 85%, rgb(30 64 175 / 8%), transparent 40%);
 }
 
 .prose {
@@ -97,4 +102,114 @@ body::before {
 
 .prose hr {
   @apply my-8 border-slate-200 dark:border-slate-800;
+}
+
+.home-grid-pattern {
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  height: 580px;
+  pointer-events: none;
+  opacity: 0.55;
+  background-image:
+    linear-gradient(to right, rgb(148 163 184 / 0.25) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(148 163 184 / 0.2) 1px, transparent 1px);
+  background-size: 36px 36px;
+  mask-image: linear-gradient(to bottom, rgb(0 0 0 / 0.95), rgb(0 0 0 / 0));
+}
+
+.dark .home-grid-pattern {
+  opacity: 0.45;
+  background-image:
+    linear-gradient(to right, rgb(71 85 105 / 0.28) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(71 85 105 / 0.22) 1px, transparent 1px);
+}
+
+.blog-article {
+  color: #334155;
+}
+
+.blog-article h2 {
+  margin-top: 2.2rem;
+  margin-bottom: 1rem;
+  font-size: 2rem;
+  font-weight: 650;
+  color: #0f172a;
+}
+
+.blog-article h3 {
+  margin-top: 1.8rem;
+  margin-bottom: 0.8rem;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.blog-article p {
+  margin: 1rem 0;
+  line-height: 1.9;
+  color: #334155;
+}
+
+.blog-article a {
+  color: #0369a1;
+}
+
+.blog-article ul,
+.blog-article ol {
+  margin: 1rem 0 1rem 1.25rem;
+}
+
+.blog-article li {
+  margin: 0.6rem 0;
+  color: #475569;
+}
+
+.blog-article blockquote {
+  margin: 1.2rem 0;
+  border-left: 3px solid #0e7490;
+  background: rgb(14 116 144 / 10%);
+  padding: 0.75rem 1rem;
+}
+
+.blog-article pre {
+  margin: 1.25rem 0;
+  overflow-x: auto;
+  border-radius: 14px;
+  border: 1px solid rgb(148 163 184 / 30%);
+  background: #020617;
+  padding: 1rem;
+}
+
+.blog-article code {
+  border-radius: 6px;
+  background: rgb(15 23 42 / 88%);
+  padding: 0.2rem 0.45rem;
+  color: #d7f2ff;
+}
+
+.dark .blog-article {
+  color: #dbe6f3;
+}
+
+.dark .blog-article h2,
+.dark .blog-article h3 {
+  color: #f8fbff;
+}
+
+.dark .blog-article p {
+  color: #b8c6d9;
+}
+
+.dark .blog-article a {
+  color: #8bd8ff;
+}
+
+.dark .blog-article li {
+  color: #c5d3e6;
+}
+
+.dark .blog-article blockquote {
+  border-left-color: #1f8fbc;
+  background: rgb(15 23 42 / 35%);
 }

@@ -34,6 +34,7 @@ export const metadata: Metadata = {
 export default function Home() {
     return (
         <main className="relative overflow-x-hidden">
+            <div className="home-grid-pattern" />
             <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_10%_15%,rgba(5,150,105,0.15),transparent_35%),radial-gradient(circle_at_85%_25%,rgba(6,182,212,0.12),transparent_35%),radial-gradient(circle_at_50%_80%,rgba(15,23,42,0.06),transparent_45%)]" />
             <section id="home">
                 <HeroSection />
