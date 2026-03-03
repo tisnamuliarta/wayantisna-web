@@ -17,7 +17,7 @@ export function HeroSection() {
                 <div className="space-y-7">
                     <div className="inline-flex items-center gap-2 rounded-full border border-emerald-600/20 bg-emerald-600/10 px-4 py-2 text-xs font-semibold tracking-wide text-emerald-700 dark:text-emerald-300">
                         <Sparkles className="h-3.5 w-3.5" />
-                        Portfolio and Engineering Blog
+                        Professional Software Developer Portfolio
                     </div>
 
                     <h1 className="text-balance text-4xl font-semibold leading-tight text-slate-900 md:text-6xl dark:text-slate-100">
@@ -28,8 +28,9 @@ export function HeroSection() {
                     </h1>
 
                     <p className="max-w-2xl text-pretty text-base leading-relaxed text-slate-700 md:text-lg dark:text-slate-300">
-                        SEO-focused software developer profile showcasing the strengths of {profile.shortName} in Laravel backend development,
-                        REST API implementation, SQL Server optimization, and scalable frontend delivery with Nuxt.js, Vue.js, React.js, and Next.js.
+                        I am {profile.fullName}, a middle to senior software developer with 6++ years of experience delivering reliable web
+                        applications. I specialize in Laravel backend engineering, REST API architecture, SQL Server performance optimization,
+                        and modern frontend development with Vue.js, Nuxt.js, React.js, and Next.js.
                     </p>
 
                     <div className="flex flex-wrap gap-3">
@@ -50,7 +51,7 @@ export function HeroSection() {
                         </Link>
                         <Link href="/#contact">
                             <Button variant="ghost" className="h-11 rounded-full px-5 text-sm">
-                                Work With Me
+                                Let&apos;s Collaborate
                                 <ArrowRight className="ml-2 h-4 w-4" />
                             </Button>
                         </Link>
