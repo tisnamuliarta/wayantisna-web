@@ -6,7 +6,7 @@ import type { ReactNode } from 'react';
 const navLinks = [
     { label: 'Home', href: '/' },
     { label: 'Portfolio', href: '/#portfolio' },
-    { label: 'Tools', href: '/#tools' },
+    { label: 'Tools', href: '/tools' },
     { label: 'Blog', href: '/blog' },
     { label: 'Contact', href: '/#contact' },
 ];

@@ -17,7 +17,7 @@ export function baseOptions(): BaseLayoutProps {
             },
             {
                 text: 'Tools',
-                url: '/#tools',
+                url: '/tools',
             },
             {
                 text: 'Blog',
