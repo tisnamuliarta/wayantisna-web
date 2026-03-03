@@ -1,121 +1,68 @@
-import { Button } from '@/components/ui/button'
-import { ArrowRight, Calendar, User } from 'lucide-react'
-import Link from 'next/link'
+import { Button } from '@/components/ui/button';
+import { blogSource } from '@/lib/source';
+import { ArrowRight, CalendarDays } from 'lucide-react';
+import Link from 'next/link';
 
 export function BlogPreviewSection() {
-    const blogPosts = [
-        {
-            title: 'Building Scalable REST APIs with Laravel',
-            excerpt: 'Learn best practices for designing robust REST APIs that can handle growth and complexity.',
-            author: 'Wayan Tisna',
-            date: 'Mar 3, 2026',
-            readTime: '8 min read',
-            tags: ['Laravel', 'REST API', 'Backend'],
-            slug: 'building-scalable-rest-apis-laravel',
-        },
-        {
-            title: 'Modern Frontend Development with React 19',
-            excerpt: 'Explore the latest features in React 19 and how they improve developer experience and performance.',
-            author: 'Wayan Tisna',
-            date: 'Feb 28, 2026',
-            readTime: '10 min read',
-            tags: ['React', 'Frontend', 'JavaScript'],
-            slug: 'modern-frontend-development-react-19',
-        },
-        {
-            title: 'Database Optimization Techniques for PostgreSQL',
-            excerpt: 'Discover query optimization, indexing strategies, and monitoring tools for better database performance.',
-            author: 'Wayan Tisna',
-            date: 'Feb 20, 2026',
-            readTime: '12 min read',
-            tags: ['Database', 'PostgreSQL', 'Performance'],
-            slug: 'database-optimization-postgresql',
-        },
-    ]
+    const posts = blogSource
+        .getPages()
+        .filter((page) => page.data.publishedAt)
+        .sort((a, b) => new Date(b.data.publishedAt!).getTime() - new Date(a.data.publishedAt!).getTime())
+        .slice(0, 3);
 
     return (
-        <section className="py-20 px-4 md:px-8 bg-slate-50 dark:bg-slate-900">
-            <div className="max-w-6xl mx-auto">
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-12">
-                    <div>
-                        <h2 className="text-4xl md:text-5xl font-bold mb-4 text-slate-900 dark:text-white">Blog & Articles</h2>
-                        <p className="text-lg text-slate-600 dark:text-slate-400">
-                            Thoughts on software development, best practices, and tech insights
-                        </p>
-                    </div>
-                    <Link href="/blog">
-                        <Button className="whitespace-nowrap">
-                            View All Articles <ArrowRight className="ml-2 w-4 h-4" />
-                        </Button>
-                    </Link>
-                </div>
-
-                <div className="grid md:grid-cols-3 gap-6">
-                    {blogPosts.map((post) => (
-                        <article
-                            key={post.slug}
-                            className="bg-white dark:bg-slate-800 rounded-lg overflow-hidden hover:shadow-lg transition-shadow duration-300 flex flex-col"
-                        >
-                            <div className="h-40 bg-gradient-to-br from-slate-200 to-slate-300 dark:from-slate-700 dark:to-slate-600 flex items-center justify-center">
-                                <div className="text-6xl">📝</div>
-                            </div>
-
-                            <div className="p-6 flex flex-col flex-grow">
-                                <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-3 line-clamp-2">
-                                    {post.title}
-                                </h3>
-
-                                <p className="text-slate-600 dark:text-slate-400 text-sm mb-4 flex-grow line-clamp-2">
-                                    {post.excerpt}
-                                </p>
-
-                                <div className="flex flex-wrap gap-2 mb-4">
-                                    {post.tags.map((tag) => (
-                                        <span
-                                            key={tag}
-                                            className="inline-block bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold px-2 py-1 rounded"
-                                        >
-                                            {tag}
-                                        </span>
-                                    ))}
-                                </div>
-
-                                <div className="border-t border-slate-200 dark:border-slate-700 pt-4">
-                                    <div className="flex items-center justify-between text-sm text-slate-600 dark:text-slate-400 mb-4">
-                                        <div className="flex items-center gap-4">
-                                            <span className="flex items-center gap-1">
-                                                <Calendar className="w-4 h-4" />
-                                                {post.date}
-                                            </span>
-                                        </div>
-                                        <span>{post.readTime}</span>
-                                    </div>
-
-                                    <Link
-                                        href={`/blog/${post.slug}`}
-                                        className="inline-flex items-center text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-semibold text-sm"
-                                    >
-                                        Read More <ArrowRight className="ml-2 w-4 h-4" />
-                                    </Link>
-                                </div>
-                            </div>
-                        </article>
-                    ))}
-                </div>
-
-                <div className="mt-12 p-8 bg-blue-600 dark:bg-blue-700 rounded-lg text-center">
-                    <h3 className="text-2xl font-bold text-white mb-2">Want to learn more?</h3>
-                    <p className="text-blue-100 mb-6">
-                        Check out my comprehensive documentation and guides on web development, database optimization, and
-                        modern architecture patterns.
+        <section className="mx-auto w-full max-w-[1200px] px-4 py-16 md:px-8 md:py-20">
+            <div className="mb-10 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+                <div>
+                    <p className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-slate-600 dark:text-slate-300">
+                        Engineering Blog
                     </p>
-                    <Link href="/blog">
-                        <Button variant="outline" className="bg-white text-blue-600 hover:bg-blue-50 border-0">
-                            Explore Documentation <ArrowRight className="ml-2 w-4 h-4" />
-                        </Button>
-                    </Link>
+                    <h2 className="text-balance text-3xl font-semibold text-slate-900 md:text-5xl dark:text-slate-100">
+                        Technical writing about APIs, performance, architecture, and modern frontend development
+                    </h2>
                 </div>
+                <Link href="/blog">
+                    <Button className="rounded-full bg-slate-900 px-5 text-white hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200">
+                        Browse All Articles
+                        <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                </Link>
+            </div>
+
+            <div className="grid gap-5 lg:grid-cols-3">
+                {posts.map((post) => (
+                    <article
+                        key={post.url}
+                        className="group rounded-3xl border border-slate-200 bg-white p-5 transition hover:-translate-y-1 hover:shadow-lg dark:border-slate-800 dark:bg-slate-950"
+                    >
+                        <p className="inline-flex rounded-full border border-cyan-300/60 bg-cyan-50 px-2.5 py-1 text-xs font-medium text-cyan-800 dark:border-cyan-900 dark:bg-cyan-950/50 dark:text-cyan-200">
+                            {post.data.tags[0] ?? 'Software Development'}
+                        </p>
+
+                        <h3 className="mt-4 text-xl font-semibold text-slate-900 transition group-hover:text-cyan-700 dark:text-slate-100 dark:group-hover:text-cyan-300">
+                            <Link href={post.url}>{post.data.title}</Link>
+                        </h3>
+
+                        <p className="mt-3 line-clamp-3 text-sm leading-relaxed text-slate-600 dark:text-slate-300">{post.data.description}</p>
+
+                        <div className="mt-5 flex items-center justify-between border-t border-slate-200 pt-4 text-xs text-slate-500 dark:border-slate-800 dark:text-slate-400">
+                            <span className="inline-flex items-center gap-1">
+                                <CalendarDays className="h-3.5 w-3.5" />
+                                {post.data.publishedAt
+                                    ? new Date(post.data.publishedAt).toLocaleDateString('en-US', {
+                                          year: 'numeric',
+                                          month: 'short',
+                                          day: 'numeric',
+                                      })
+                                    : 'Coming soon'}
+                            </span>
+                            <Link href={post.url} className="font-semibold text-slate-900 dark:text-slate-100">
+                                Read article
+                            </Link>
+                        </div>
+                    </article>
+                ))}
             </div>
         </section>
-    )
+    );
 }

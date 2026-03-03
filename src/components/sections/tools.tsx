@@ -1,211 +1,245 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Calculator, Zap } from 'lucide-react'
+import { Button } from '@/components/ui/button';
+import { Calculator, Cpu, Gauge, Server } from 'lucide-react';
+import { useMemo, useState } from 'react';
 
-interface LLMSpec {
-    name: string
-    parameters: number
-    vram_per_param: number // in GB
-    inference_vram: number // in GB
-}
+type Precision = 'fp16' | 'int8' | 'int4';
+type ModelKey = '7b' | '13b' | '34b' | '70b';
 
-interface RateLimitConfig {
-    requests: number
-    timeWindow: number
-    allowed: number
-}
+const modelMap: Record<ModelKey, { label: string; paramsInBillions: number }> = {
+    '7b': { label: '7B', paramsInBillions: 7 },
+    '13b': { label: '13B', paramsInBillions: 13 },
+    '34b': { label: '34B', paramsInBillions: 34 },
+    '70b': { label: '70B', paramsInBillions: 70 },
+};
+
+const precisionBytes: Record<Precision, number> = {
+    fp16: 2,
+    int8: 1,
+    int4: 0.5,
+};
 
 export function ToolsSection() {
-    const [activeTab, setActiveTab] = useState<'llm' | 'ratelimit'>('llm')
-    const [llmModel, setLlmModel] = useState<'7b' | '13b' | '70b'>('7b')
-    const [rateLimitConfig, setRateLimitConfig] = useState<RateLimitConfig>({
-        requests: 100,
-        timeWindow: 60,
-        allowed: 10,
-    })
+    const [model, setModel] = useState<ModelKey>('13b');
+    const [precision, setPrecision] = useState<Precision>('int8');
+    const [contextTokens, setContextTokens] = useState(8192);
+    const [requestsPerMinute, setRequestsPerMinute] = useState(1200);
+    const [avgLatencyMs, setAvgLatencyMs] = useState(350);
+    const [workers, setWorkers] = useState(6);
 
-    const llmSpecs: Record<string, LLMSpec> = {
-        '7b': { name: 'Llama 7B', parameters: 7, vram_per_param: 0.002, inference_vram: 16 },
-        '13b': { name: 'Llama 13B', parameters: 13, vram_per_param: 0.002, inference_vram: 28 },
-        '70b': { name: 'Llama 70B', parameters: 70, vram_per_param: 0.002, inference_vram: 160 },
-    }
+    const llmResult = useMemo(() => {
+        const params = modelMap[model].paramsInBillions * 1_000_000_000;
+        const weightsGb = (params * precisionBytes[precision]) / (1024 ** 3);
+        const kvCacheGb = (contextTokens / 2048) * 0.85;
+        const runtimeOverheadGb = weightsGb * 0.2;
+        const totalRequiredGb = weightsGb + kvCacheGb + runtimeOverheadGb;
 
-    const selectedModel = llmSpecs[llmModel]
-    const trainingVram = selectedModel.parameters * selectedModel.vram_per_param
-    const inferenceVram = selectedModel.inference_vram
-    const totalVram = trainingVram + inferenceVram
+        return {
+            modelLabel: modelMap[model].label,
+            weightsGb,
+            kvCacheGb,
+            totalRequiredGb,
+            gpus40: Math.max(1, Math.ceil(totalRequiredGb / 40)),
+            gpus80: Math.max(1, Math.ceil(totalRequiredGb / 80)),
+        };
+    }, [contextTokens, model, precision]);
 
-    const estimatedGPUs = Math.ceil(inferenceVram / 40) // Assuming 40GB GPUs
+    const apiResult = useMemo(() => {
+        const requestsPerSecond = requestsPerMinute / 60;
+        const theoreticalConcurrent = (requestsPerSecond * avgLatencyMs) / 1000;
+        const safeConcurrent = Math.ceil(theoreticalConcurrent * 1.3);
+        const workerCapacity = workers * 32;
+        const utilization = Math.min(100, (safeConcurrent / workerCapacity) * 100);
 
-    const calculateRateLimit = () => {
-        const requestsPerSecond = (rateLimitConfig.requests / rateLimitConfig.timeWindow)
-        return (requestsPerSecond * 1000).toFixed(2)
-    }
+        return {
+            requestsPerSecond,
+            safeConcurrent,
+            workerCapacity,
+            utilization,
+        };
+    }, [avgLatencyMs, requestsPerMinute, workers]);
 
     return (
-        <section className="py-20 px-4 md:px-8">
-            <div className="max-w-6xl mx-auto">
-                <h2 className="text-4xl md:text-5xl font-bold mb-12 text-slate-900 dark:text-white">Custom Tools</h2>
+        <section className="mx-auto w-full max-w-[1200px] px-4 py-16 md:px-8 md:py-20">
+            <div className="mb-10">
+                <p className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-amber-700 dark:text-amber-300">
+                    Practical Engineering Tools
+                </p>
+                <h2 className="text-balance text-3xl font-semibold text-slate-900 md:text-5xl dark:text-slate-100">
+                    Interactive calculators for LLM infrastructure and API capacity planning
+                </h2>
+            </div>
 
-                <div className="grid md:grid-cols-2 gap-8">
-                    {/* Tool 1: LLM Hardware Calculator */}
-                    <div className="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 rounded-lg p-8 border border-emerald-200 dark:border-emerald-800/30">
-                        <div className="flex items-center mb-6">
-                            <Calculator className="w-8 h-8 text-emerald-600 dark:text-emerald-400 mr-3" />
-                            <h3 className="text-2xl font-bold text-slate-900 dark:text-white">LLM Hardware Calculator</h3>
+            <div className="grid gap-6 xl:grid-cols-2">
+                <article className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-950">
+                    <div className="mb-5 flex items-center gap-3">
+                        <span className="rounded-xl bg-slate-900 p-2 text-white dark:bg-slate-100 dark:text-slate-900">
+                            <Calculator className="h-5 w-5" />
+                        </span>
+                        <div>
+                            <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">LLM Hardware Requirement Planner</h3>
+                            <p className="text-sm text-slate-600 dark:text-slate-300">Estimate VRAM for model serving and deployment sizing.</p>
                         </div>
+                    </div>
 
-                        <div className="mb-6">
-                            <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3">
-                                Select Model
+                    <div className="grid gap-3 sm:grid-cols-4">
+                        {(Object.keys(modelMap) as ModelKey[]).map((key) => (
+                            <Button
+                                key={key}
+                                onClick={() => setModel(key)}
+                                variant={model === key ? 'default' : 'outline'}
+                                className={model === key ? 'bg-slate-900 hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200' : ''}
+                            >
+                                {modelMap[key].label}
+                            </Button>
+                        ))}
+                    </div>
+
+                    <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                        {(['fp16', 'int8', 'int4'] as Precision[]).map((item) => (
+                            <Button
+                                key={item}
+                                onClick={() => setPrecision(item)}
+                                variant={precision === item ? 'default' : 'outline'}
+                                className={precision === item ? 'bg-cyan-700 hover:bg-cyan-600 dark:bg-cyan-400 dark:text-slate-900 dark:hover:bg-cyan-300' : ''}
+                            >
+                                {item.toUpperCase()}
+                            </Button>
+                        ))}
+                    </div>
+
+                    <div className="mt-5">
+                        <label htmlFor="context-tokens" className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                            Context length: {contextTokens.toLocaleString()} tokens
+                        </label>
+                        <input
+                            id="context-tokens"
+                            type="range"
+                            min={2048}
+                            max={32768}
+                            step={2048}
+                            value={contextTokens}
+                            onChange={(event) => setContextTokens(Number(event.target.value))}
+                            className="w-full accent-cyan-700"
+                        />
+                    </div>
+
+                    <div className="mt-5 grid gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm dark:border-slate-800 dark:bg-slate-900">
+                        <p className="flex items-center justify-between">
+                            <span className="text-slate-600 dark:text-slate-300">Model and precision</span>
+                            <strong className="text-slate-900 dark:text-slate-100">
+                                {llmResult.modelLabel} / {precision.toUpperCase()}
+                            </strong>
+                        </p>
+                        <p className="flex items-center justify-between">
+                            <span className="text-slate-600 dark:text-slate-300">Weight memory</span>
+                            <strong className="text-slate-900 dark:text-slate-100">{llmResult.weightsGb.toFixed(1)} GB</strong>
+                        </p>
+                        <p className="flex items-center justify-between">
+                            <span className="text-slate-600 dark:text-slate-300">KV cache estimate</span>
+                            <strong className="text-slate-900 dark:text-slate-100">{llmResult.kvCacheGb.toFixed(1)} GB</strong>
+                        </p>
+                        <p className="flex items-center justify-between">
+                            <span className="text-slate-600 dark:text-slate-300">Total required VRAM</span>
+                            <strong className="text-cyan-700 dark:text-cyan-300">{llmResult.totalRequiredGb.toFixed(1)} GB</strong>
+                        </p>
+                        <p className="flex items-center justify-between">
+                            <span className="text-slate-600 dark:text-slate-300">GPU recommendation</span>
+                            <strong className="text-slate-900 dark:text-slate-100">
+                                {llmResult.gpus40}x 40GB or {llmResult.gpus80}x 80GB
+                            </strong>
+                        </p>
+                    </div>
+                </article>
+
+                <article className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-950">
+                    <div className="mb-5 flex items-center gap-3">
+                        <span className="rounded-xl bg-slate-900 p-2 text-white dark:bg-slate-100 dark:text-slate-900">
+                            <Server className="h-5 w-5" />
+                        </span>
+                        <div>
+                            <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">API Capacity Estimator</h3>
+                            <p className="text-sm text-slate-600 dark:text-slate-300">Plan worker count, concurrency, and safe utilization targets.</p>
+                        </div>
+                    </div>
+
+                    <div className="space-y-4">
+                        <div>
+                            <label htmlFor="rpm" className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                                Requests per minute: {requestsPerMinute}
                             </label>
-                            <div className="grid grid-cols-3 gap-2">
-                                {['7b', '13b', '70b'].map((size) => (
-                                    <Button
-                                        key={size}
-                                        variant={llmModel === size ? 'default' : 'outline'}
-                                        onClick={() => setLlmModel(size as '7b' | '13b' | '70b')}
-                                        className={llmModel === size ? "w-full bg-emerald-600 hover:bg-emerald-700" : "w-full border-emerald-300 dark:border-emerald-700 text-emerald-700 dark:text-emerald-400"}
-                                    >
-                                        {size.toUpperCase()}
-                                    </Button>
-                                ))}
-                            </div>
+                            <input
+                                id="rpm"
+                                type="range"
+                                min={60}
+                                max={6000}
+                                step={60}
+                                value={requestsPerMinute}
+                                onChange={(event) => setRequestsPerMinute(Number(event.target.value))}
+                                className="w-full accent-amber-700"
+                            />
                         </div>
-
-                        <div className="space-y-4 bg-white dark:bg-slate-950 rounded-lg p-6">
-                            <div>
-                                <div className="flex justify-between mb-2">
-                                    <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">Model:</span>
-                                    <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400">{selectedModel.name}</span>
-                                </div>
-                            </div>
-
-                            <div>
-                                <div className="flex justify-between mb-2">
-                                    <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">Parameters:</span>
-                                    <span className="text-sm font-bold text-slate-900 dark:text-white">{selectedModel.parameters}B</span>
-                                </div>
-                            </div>
-
-                            <hr className="border-slate-200 dark:border-slate-700" />
-
-                            <div>
-                                <div className="flex justify-between mb-2">
-                                    <span className="text-sm text-slate-600 dark:text-slate-400">Training VRAM:</span>
-                                    <span className="text-sm font-semibold text-slate-900 dark:text-white">{trainingVram.toFixed(1)} GB</span>
-                                </div>
-                            </div>
-
-                            <div>
-                                <div className="flex justify-between mb-2">
-                                    <span className="text-sm text-slate-600 dark:text-slate-400">Inference VRAM:</span>
-                                    <span className="text-sm font-semibold text-slate-900 dark:text-white">{inferenceVram} GB</span>
-                                </div>
-                            </div>
-
-                            <div>
-                                <div className="flex justify-between mb-2">
-                                    <span className="text-sm text-slate-600 dark:text-slate-400">Estimated GPUs:</span>
-                                    <span className="text-sm font-semibold text-slate-900 dark:text-white">{estimatedGPUs}x A100 (40GB)</span>
-                                </div>
-                            </div>
-
-                            <hr className="border-slate-200 dark:border-slate-700" />
-
-                            <div className="bg-emerald-100 dark:bg-emerald-900/30 rounded p-3 border border-emerald-200 dark:border-emerald-800/30">
-                                <div className="flex justify-between">
-                                    <span className="font-semibold text-slate-900 dark:text-white">Total VRAM:</span>
-                                    <span className="font-bold text-emerald-600 dark:text-emerald-400">{totalVram.toFixed(1)} GB</span>
-                                </div>
-                            </div>
+                        <div>
+                            <label htmlFor="latency" className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                                Average latency: {avgLatencyMs} ms
+                            </label>
+                            <input
+                                id="latency"
+                                type="range"
+                                min={40}
+                                max={1200}
+                                step={10}
+                                value={avgLatencyMs}
+                                onChange={(event) => setAvgLatencyMs(Number(event.target.value))}
+                                className="w-full accent-amber-700"
+                            />
+                        </div>
+                        <div>
+                            <label htmlFor="workers" className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                                Worker count: {workers}
+                            </label>
+                            <input
+                                id="workers"
+                                type="range"
+                                min={2}
+                                max={40}
+                                step={1}
+                                value={workers}
+                                onChange={(event) => setWorkers(Number(event.target.value))}
+                                className="w-full accent-amber-700"
+                            />
                         </div>
                     </div>
 
-                    {/* Tool 2: API Rate Limiter */}
-                    <div className="bg-gradient-to-br from-teal-50 to-cyan-50 dark:from-teal-900/20 dark:to-cyan-900/20 rounded-lg p-8 border border-teal-200 dark:border-teal-800/30">
-                        <div className="flex items-center mb-6">
-                            <Zap className="w-8 h-8 text-teal-600 dark:text-teal-400 mr-3" />
-                            <h3 className="text-2xl font-bold text-slate-900 dark:text-white">API Rate Limiter</h3>
-                        </div>
-
-                        <div className="space-y-6 bg-white dark:bg-slate-950 rounded-lg p-6">
-                            <div>
-                                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
-                                    Total Requests
-                                </label>
-                                <input
-                                    type="range"
-                                    min="10"
-                                    max="1000"
-                                    step="10"
-                                    value={rateLimitConfig.requests}
-                                    onChange={(e) => setRateLimitConfig({ ...rateLimitConfig, requests: parseInt(e.target.value) })}
-                                    className="w-full accent-teal-600"
-                                />
-                                <div className="flex justify-between mt-2">
-                                    <span className="text-sm text-slate-600 dark:text-slate-400">Min</span>
-                                    <span className="text-sm font-bold text-slate-900 dark:text-white">{rateLimitConfig.requests}</span>
-                                    <span className="text-sm text-slate-600 dark:text-slate-400">Max</span>
-                                </div>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
-                                    Time Window (seconds)
-                                </label>
-                                <input
-                                    type="range"
-                                    min="1"
-                                    max="3600"
-                                    step="1"
-                                    value={rateLimitConfig.timeWindow}
-                                    onChange={(e) => setRateLimitConfig({ ...rateLimitConfig, timeWindow: parseInt(e.target.value) })}
-                                    className="w-full"
-                                />
-                                <div className="flex justify-between mt-2">
-                                    <span className="text-sm text-slate-600 dark:text-slate-400">1s</span>
-                                    <span className="text-sm font-bold text-slate-900 dark:text-white">{rateLimitConfig.timeWindow}s</span>
-                                    <span className="text-sm text-slate-600 dark:text-slate-400">3600s</span>
-                                </div>
-                            </div>
-
-                            <hr className="border-slate-200 dark:border-slate-700" />
-
-                            <div className="bg-purple-100 dark:bg-purple-900/30 rounded p-4">
-                                <div className="flex justify-between mb-3">
-                                    <span className="text-sm text-slate-600 dark:text-slate-400">Configuration:</span>
-                                </div>
-                                <div className="space-y-2">
-                                    <div className="flex justify-between">
-                                        <span className="text-sm text-slate-600 dark:text-slate-400">Requests/Second:</span>
-                                        <span className="font-bold text-purple-600 dark:text-purple-400">{calculateRateLimit()} req/ms</span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                        <span className="text-sm text-slate-600 dark:text-slate-400">Burst Window:</span>
-                                        <span className="font-bold text-purple-600 dark:text-purple-400">{rateLimitConfig.timeWindow}s</span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                        <span className="text-sm text-slate-600 dark:text-slate-400">Max Concurrent:</span>
-                                        <span className="font-bold text-purple-600 dark:text-purple-400">{rateLimitConfig.requests}</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="bg-slate-100 dark:bg-slate-700/50 rounded p-4 text-xs text-slate-600 dark:text-slate-400">
-                                <p className="font-semibold mb-2">💡 Implementation Tips:</p>
-                                <ul className="space-y-1 list-disc list-inside">
-                                    <li>Use sliding window algorithm for accuracy</li>
-                                    <li>Store counters in Redis for distributed systems</li>
-                                    <li>Consider burst allowance for spikes</li>
-                                </ul>
-                            </div>
-                        </div>
+                    <div className="mt-5 grid gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm dark:border-slate-800 dark:bg-slate-900">
+                        <p className="flex items-center justify-between">
+                            <span className="inline-flex items-center gap-1 text-slate-600 dark:text-slate-300">
+                                <Gauge className="h-4 w-4" />
+                                Throughput
+                            </span>
+                            <strong className="text-slate-900 dark:text-slate-100">{apiResult.requestsPerSecond.toFixed(1)} req/s</strong>
+                        </p>
+                        <p className="flex items-center justify-between">
+                            <span className="inline-flex items-center gap-1 text-slate-600 dark:text-slate-300">
+                                <Cpu className="h-4 w-4" />
+                                Safe concurrent load
+                            </span>
+                            <strong className="text-slate-900 dark:text-slate-100">{apiResult.safeConcurrent}</strong>
+                        </p>
+                        <p className="flex items-center justify-between">
+                            <span className="text-slate-600 dark:text-slate-300">Estimated worker capacity</span>
+                            <strong className="text-slate-900 dark:text-slate-100">{apiResult.workerCapacity}</strong>
+                        </p>
+                        <p className="flex items-center justify-between">
+                            <span className="text-slate-600 dark:text-slate-300">Utilization target</span>
+                            <strong className={apiResult.utilization > 80 ? 'text-red-600 dark:text-red-400' : 'text-emerald-700 dark:text-emerald-300'}>
+                                {apiResult.utilization.toFixed(0)}%
+                            </strong>
+                        </p>
                     </div>
-                </div>
+                </article>
             </div>
         </section>
-    )
+    );
 }

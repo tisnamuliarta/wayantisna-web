@@ -8,13 +8,25 @@ export function baseOptions(): BaseLayoutProps {
         },
         links: [
             {
-                text: 'Portfolio',
+                text: 'Home',
                 url: '/',
+            },
+            {
+                text: 'Portfolio',
+                url: '/#portfolio',
+            },
+            {
+                text: 'Tools',
+                url: '/#tools',
             },
             {
                 text: 'Blog',
                 url: '/blog',
                 active: 'nested-url',
+            },
+            {
+                text: 'Contact',
+                url: '/#contact',
             },
         ],
     };

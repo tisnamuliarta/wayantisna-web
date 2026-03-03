@@ -1,13 +1,20 @@
-import { Header } from "@/components/sections/header";
 import { Footer } from "@/components/sections/footer";
+import { baseOptions } from "@/lib/layout.shared";
+import { HomeLayout as FumaHomeLayout } from "fumadocs-ui/layouts/home";
 import type { ReactNode } from "react";
 
-export default function HomeLayout({ children }: { children: ReactNode }) {
+export default function LandingLayout({ children }: { children: ReactNode }) {
     return (
-        <>
-            <Header />
+        <FumaHomeLayout
+            {...baseOptions()}
+            className="bg-transparent"
+            nav={{
+                title: "Wayan Tisna",
+                url: "/",
+            }}
+        >
             {children}
             <Footer />
-        </>
+        </FumaHomeLayout>
     );
 }

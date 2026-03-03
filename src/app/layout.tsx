@@ -1,26 +1,49 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { JetBrains_Mono, Manrope } from "next/font/google";
 import "./globals.css";
 import { RootProvider } from "fumadocs-ui/provider/next";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const manrope = Manrope({
+  variable: "--font-manrope",
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const jetBrainsMono = JetBrains_Mono({
+  variable: "--font-jetbrains-mono",
   subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
-  title: "Wayan Tisna - Software Developer",
-  description: "Professional portfolio of I Wayan Tisna Adi Muliart, a Middle to Senior Software Developer specialized in Laravel, React, and Next.js",
-  keywords: "Developer, Laravel, React, Next.js, REST API, Full-stack",
   metadataBase: new URL("https://wayantisna.com"),
+  title: {
+    default: "Wayan Tisna | Software Developer Portfolio",
+    template: "%s | Wayan Tisna",
+  },
+  description:
+    "Professional portfolio, technical blog, and engineering tools by I Wayan Tisna Adi Muliart. Expertise: Laravel, REST API, SQL Server, Nuxt.js, Vue.js, React.js, and Next.js.",
+  keywords: [
+    "I Wayan Tisna Adi Muliart",
+    "Wayan Tisna",
+    "software developer portfolio",
+    "Laravel developer",
+    "REST API developer",
+    "SQL Server optimization",
+    "Nuxt.js developer",
+    "Vue.js developer",
+    "React.js developer",
+    "Next.js developer",
+  ],
+  alternates: {
+    canonical: "/",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
   openGraph: {
-    title: "Wayan Tisna - Software Developer",
-    description: "Professional portfolio and blog",
+    title: "Wayan Tisna | Software Developer Portfolio",
+    description:
+      "Portfolio and engineering blog covering Laravel, REST API, SQL Server, and modern frontend development.",
     url: "https://wayantisna.com",
     siteName: "Wayan Tisna Portfolio",
     locale: "en_US",
@@ -28,8 +51,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Wayan Tisna - Software Developer",
-    description: "Professional portfolio and blog",
+    title: "Wayan Tisna | Software Developer Portfolio",
+    description:
+      "Portfolio and engineering blog by I Wayan Tisna Adi Muliart.",
   },
 };
 
@@ -41,11 +65,10 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased text-slate-900 dark:text-white transition-colors duration-300`}
+        className={`${manrope.variable} ${jetBrainsMono.variable} antialiased text-slate-900 dark:text-white transition-colors duration-300`}
       >
         <RootProvider>{children}</RootProvider>
       </body>
     </html>
   );
 }
-

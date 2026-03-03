@@ -1,108 +1,49 @@
-import { Github, Linkedin, Twitter, Mail, Heart } from 'lucide-react'
+import { profile, socialLinks } from '@/lib/utils';
+import { Github, Linkedin, Mail } from 'lucide-react';
+import Link from 'next/link';
+
+const footerLinks = [
+    { name: 'Home', href: '/' },
+    { name: 'Portfolio', href: '/#portfolio' },
+    { name: 'Tools', href: '/#tools' },
+    { name: 'Blog', href: '/blog' },
+    { name: 'Contact', href: '/#contact' },
+];
 
 export function Footer() {
-    const currentYear = new Date().getFullYear()
-
-    const socialLinks = [
-        {
-            name: 'GitHub',
-            icon: Github,
-            url: 'https://github.com',
-        },
-        {
-            name: 'LinkedIn',
-            icon: Linkedin,
-            url: 'https://linkedin.com',
-        },
-        {
-            name: 'Twitter',
-            icon: Twitter,
-            url: 'https://twitter.com',
-        },
-        {
-            name: 'Email',
-            icon: Mail,
-            url: 'mailto:wayan@example.com',
-        },
-    ]
-
     return (
-        <footer className="bg-gradient-to-b from-slate-100 to-white dark:from-slate-900 dark:to-slate-950 text-slate-900 dark:text-white border-t border-emerald-200 dark:border-emerald-900/30">
-            <div className="max-w-6xl mx-auto px-4 md:px-8 py-12">
-                <div className="grid md:grid-cols-4 gap-8 mb-8">
-                    {/* Brand */}
+        <footer className="border-t border-slate-200/80 bg-white/90 backdrop-blur dark:border-slate-800 dark:bg-slate-950/90">
+            <div className="mx-auto flex w-full max-w-[1200px] flex-col gap-6 px-4 py-10 md:px-8 md:py-12">
+                <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
                     <div>
-                        <div className="flex items-center gap-2 font-bold text-lg mb-4">
-                            <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center text-white text-sm font-bold shadow-md">
-                                WT
-                            </div>
-                            Wayan Tisna
-                        </div>
-                        <p className="text-slate-600 dark:text-slate-400 text-sm">
-                            Full-stack developer passionate about building scalable web applications.
-                        </p>
+                        <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">{profile.shortName}</h2>
+                        <p className="mt-2 max-w-xl text-sm text-slate-600 dark:text-slate-300">{profile.summary}</p>
                     </div>
-
-                    {/* Quick Links */}
-                    <div>
-                        <h3 className="font-bold mb-4 text-slate-900 dark:text-white">Navigation</h3>
-                        <ul className="space-y-2 text-slate-600 dark:text-slate-400 text-sm">
-                            <li><a href="#home" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition">Home</a></li>
-                            <li><a href="#about" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition">About</a></li>
-                            <li><a href="#portfolio" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition">Portfolio</a></li>
-                            <li><a href="#blog" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition">Blog</a></li>
-                        </ul>
-                    </div>
-
-                    {/* Resources */}
-                    <div>
-                        <h3 className="font-bold mb-4 text-slate-900 dark:text-white">Resources</h3>
-                        <ul className="space-y-2 text-slate-600 dark:text-slate-400 text-sm">
-                            <li><a href="#" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition">Documentation</a></li>
-                            <li><a href="#" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition">Blog</a></li>
-                            <li><a href="#" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition">Projects</a></li>
-                            <li><a href="#" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition">Contact</a></li>
-                        </ul>
-                    </div>
-
-                    {/* Social Links */}
-                    <div>
-                        <h3 className="font-bold mb-4 text-slate-900 dark:text-white">Follow</h3>
-                        <div className="flex gap-3">
-                            {socialLinks.map((link) => {
-                                const Icon = link.icon
-                                return (
-                                    <a
-                                        key={link.name}
-                                        href={link.url}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="p-2 bg-emerald-100 dark:bg-emerald-900/30 hover:bg-emerald-600 dark:hover:bg-emerald-600 text-emerald-700 dark:text-emerald-400 hover:text-white rounded-lg transition"
-                                        title={link.name}
-                                    >
-                                        <Icon className="w-4 h-4" />
-                                    </a>
-                                )
-                            })}
-                        </div>
+                    <div className="flex items-center gap-2">
+                        <a href={socialLinks.github} target="_blank" rel="noreferrer" className="rounded-full border border-slate-300 p-2 text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-900">
+                            <Github className="h-4 w-4" />
+                        </a>
+                        <a href={socialLinks.linkedin} target="_blank" rel="noreferrer" className="rounded-full border border-slate-300 p-2 text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-900">
+                            <Linkedin className="h-4 w-4" />
+                        </a>
+                        <a href={`mailto:${socialLinks.email}`} className="rounded-full border border-slate-300 p-2 text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-900">
+                            <Mail className="h-4 w-4" />
+                        </a>
                     </div>
                 </div>
 
-                {/* Divider */}
-                <hr className="border-emerald-200 dark:border-emerald-900/30 my-8" />
-
-                {/* Bottom */}
-                <div className="flex flex-col md:flex-row justify-between items-center text-slate-600 dark:text-slate-400 text-sm">
-                    <p className="flex items-center gap-1 mb-4 md:mb-0">
-                        Made with <Heart className="w-4 h-4 text-emerald-600 dark:text-emerald-400" /> by Wayan Tisna © {currentYear}
-                    </p>
-                    <div className="flex gap-6">
-                        <a href="#" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition">Privacy</a>
-                        <a href="#" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition">Terms</a>
-                        <a href="#" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition">Sitemap</a>
-                    </div>
+                <div className="flex flex-wrap gap-x-5 gap-y-2 border-t border-slate-200 pt-5 text-sm dark:border-slate-800">
+                    {footerLinks.map((item) => (
+                        <Link key={item.name} href={item.href} className="text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-slate-100">
+                            {item.name}
+                        </Link>
+                    ))}
                 </div>
+
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                    {new Date().getFullYear()} {profile.fullName}. Built with Next.js, shadcn-style components, and Fumadocs.
+                </p>
             </div>
         </footer>
-    )
+    );
 }

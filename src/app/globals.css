@@ -3,27 +3,23 @@
 @import "fumadocs-ui/css/preset.css";
 
 :root {
-  --background: linear-gradient(135deg, #f0fdf4 0%, #f5f7f6 100%);
-  --background-color: #f0fdf4;
-  --foreground: #0f5f3f;
-  --accent: #059669;
-  --accent-light: #10b981;
+  --background-color: #f5f8fb;
+  --foreground: #101828;
+  --accent: #0f766e;
 }
 
 @theme inline {
   --color-background: var(--background-color);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-manrope);
+  --font-mono: var(--font-jetbrains-mono);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: linear-gradient(135deg, #0f172a 0%, #1a3a3a 50%, #0d2b2b 100%);
-    --background-color: #0f172a;
-    --foreground: #e0f2fe;
-    --accent: #10b981;
-    --accent-light: #34d399;
+    --background-color: #030712;
+    --foreground: #f8fafc;
+    --accent: #34d399;
   }
 }
 
@@ -34,101 +30,71 @@ html {
 body {
   background: var(--background-color);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
   min-height: 100vh;
   position: relative;
 }
 
-/* Gradient background overlay */
 body::before {
-  content: '';
+  content: "";
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: var(--background);
+  inset: 0;
   z-index: -1;
   pointer-events: none;
+  background:
+    radial-gradient(circle at 15% 10%, rgb(16 185 129 / 16%), transparent 33%),
+    radial-gradient(circle at 85% 25%, rgb(6 182 212 / 12%), transparent 36%),
+    radial-gradient(circle at 40% 85%, rgb(30 64 175 / 10%), transparent 40%);
 }
 
-/* MDX Content Styling */
 .prose {
   @apply max-w-none;
 }
 
 .prose h2 {
-  @apply text-2xl md:text-3xl font-bold mt-8 mb-4 text-slate-900 dark:text-white;
+  @apply mt-10 text-3xl font-semibold text-slate-900 dark:text-slate-100;
 }
 
 .prose h3 {
-  @apply text-xl font-bold mt-6 mb-3 text-slate-900 dark:text-white;
+  @apply mt-8 text-2xl font-semibold text-slate-900 dark:text-slate-100;
 }
 
-.prose h4,
-.prose h5,
-.prose h6 {
-  @apply font-bold mt-4 mb-2 text-slate-900 dark:text-white;
+.prose h4 {
+  @apply mt-6 text-xl font-semibold text-slate-900 dark:text-slate-100;
 }
 
 .prose p {
-  @apply text-slate-600 dark:text-slate-400 mb-4 leading-relaxed;
+  @apply my-4 leading-7 text-slate-700 dark:text-slate-300;
 }
 
 .prose a {
-  @apply text-blue-600 dark:text-blue-400 hover:underline;
+  @apply font-medium text-cyan-700 underline-offset-2 hover:underline dark:text-cyan-300;
 }
 
 .prose code {
-  @apply bg-slate-100 dark:bg-slate-800 rounded px-2 py-1 text-sm font-mono text-slate-900 dark:text-slate-100;
+  @apply rounded bg-slate-100 px-1.5 py-1 text-sm text-slate-900 dark:bg-slate-800 dark:text-slate-100;
 }
 
 .prose pre {
-  @apply bg-slate-900 dark:bg-slate-950 rounded-lg p-4 overflow-x-auto mb-4;
+  @apply my-5 overflow-x-auto rounded-xl border border-slate-800 bg-slate-950 p-4;
 }
 
 .prose pre code {
-  @apply bg-transparent text-slate-100 px-0 py-0;
+  @apply bg-transparent p-0 text-slate-100;
 }
 
 .prose blockquote {
-  @apply border-l-4 border-blue-600 dark:border-blue-400 pl-4 italic text-slate-600 dark:text-slate-400 mb-4;
+  @apply my-5 border-l-4 border-cyan-700 bg-cyan-50/40 px-4 py-2 italic text-slate-700 dark:border-cyan-400 dark:bg-cyan-900/10 dark:text-slate-300;
 }
 
 .prose ul,
 .prose ol {
-  @apply mb-4 ml-6;
+  @apply my-4 ml-6;
 }
 
 .prose li {
-  @apply text-slate-600 dark:text-slate-400 mb-2;
-}
-
-.prose ul li {
-  @apply list-disc;
-}
-
-.prose ol li {
-  @apply list-decimal;
-}
-
-.prose table {
-  @apply w-full border-collapse mb-4;
-}
-
-.prose thead {
-  @apply bg-slate-100 dark:bg-slate-800;
-}
-
-.prose th,
-.prose td {
-  @apply border border-slate-200 dark:border-slate-700 px-4 py-2 text-left;
+  @apply my-1.5 text-slate-700 dark:text-slate-300;
 }
 
 .prose hr {
-  @apply my-6 border-slate-200 dark:border-slate-700;
-}
-
-.prose img {
-  @apply rounded-lg max-w-full h-auto;
+  @apply my-8 border-slate-200 dark:border-slate-800;
 }
