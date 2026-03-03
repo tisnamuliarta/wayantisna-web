@@ -1,9 +1,36 @@
+import { cn } from '@/lib/utils';
+import { CodeBlock, Pre } from 'fumadocs-ui/components/codeblock';
+import { ImageZoom } from 'fumadocs-ui/components/image-zoom';
+import type { ImageProps } from 'fumadocs-core/framework';
 import defaultMdxComponents from 'fumadocs-ui/mdx';
 import type { MDXComponents } from 'mdx/types';
+import type { HTMLAttributes, ImgHTMLAttributes } from 'react';
 
 export function getMDXComponents(components?: MDXComponents): MDXComponents {
+    const enhancedComponents: MDXComponents = {
+        pre: (props: HTMLAttributes<HTMLPreElement>) => (
+            <CodeBlock {...props}>
+                <Pre>{props.children}</Pre>
+            </CodeBlock>
+        ),
+        img: (props: ImgHTMLAttributes<HTMLImageElement> & { sizes?: string }) => {
+            const { src, className, sizes, ...rest } = props;
+            if (typeof src !== 'string' && typeof src !== 'undefined') return null;
+
+            const imageProps: ImageProps = {
+                ...(rest as Omit<ImageProps, 'src'>),
+                src,
+                sizes: sizes ?? '(max-width: 768px) 100vw, (max-width: 1200px) 70vw, 900px',
+                className: cn('rounded-xl', className),
+            };
+
+            return <ImageZoom {...imageProps} />;
+        },
+    };
+
     return {
         ...defaultMdxComponents,
+        ...enhancedComponents,
         ...components,
     };
 }
