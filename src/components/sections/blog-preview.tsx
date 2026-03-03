@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button'
 import { ArrowRight, Calendar, User } from 'lucide-react'
+import Link from 'next/link'
 
 export function BlogPreviewSection() {
     const blogPosts = [
@@ -42,9 +43,11 @@ export function BlogPreviewSection() {
                             Thoughts on software development, best practices, and tech insights
                         </p>
                     </div>
-                    <Button className="whitespace-nowrap">
-                        View All Articles <ArrowRight className="ml-2 w-4 h-4" />
-                    </Button>
+                    <Link href="/blog">
+                        <Button className="whitespace-nowrap">
+                            View All Articles <ArrowRight className="ml-2 w-4 h-4" />
+                        </Button>
+                    </Link>
                 </div>
 
                 <div className="grid md:grid-cols-3 gap-6">
@@ -88,12 +91,12 @@ export function BlogPreviewSection() {
                                         <span>{post.readTime}</span>
                                     </div>
 
-                                    <a
+                                    <Link
                                         href={`/blog/${post.slug}`}
                                         className="inline-flex items-center text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-semibold text-sm"
                                     >
                                         Read More <ArrowRight className="ml-2 w-4 h-4" />
-                                    </a>
+                                    </Link>
                                 </div>
                             </div>
                         </article>
@@ -106,9 +109,11 @@ export function BlogPreviewSection() {
                         Check out my comprehensive documentation and guides on web development, database optimization, and
                         modern architecture patterns.
                     </p>
-                    <Button variant="outline" className="bg-white text-blue-600 hover:bg-blue-50 border-0">
-                        Explore Documentation <ArrowRight className="ml-2 w-4 h-4" />
-                    </Button>
+                    <Link href="/blog">
+                        <Button variant="outline" className="bg-white text-blue-600 hover:bg-blue-50 border-0">
+                            Explore Documentation <ArrowRight className="ml-2 w-4 h-4" />
+                        </Button>
+                    </Link>
                 </div>
             </div>
         </section>
