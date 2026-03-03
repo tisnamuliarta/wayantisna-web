@@ -1,4 +1,5 @@
 import { AdBanner } from '@/components/ads-banner';
+import { ShareButtons } from '@/components/blog/share-buttons';
 import { blogSource } from '@/lib/source';
 import { InlineTOC } from 'fumadocs-ui/components/inline-toc';
 import { CalendarDays, ChevronLeft } from 'lucide-react';
@@ -54,6 +55,8 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
     const MDX = page.data.body;
     const tocItems = page.data.toc ?? [];
+    const shareUrl = `https://wayantisna.com/blog/${slug}`;
+    const shareTitle = page.data.title;
 
     const jsonLd = {
         '@context': 'https://schema.org',
@@ -118,8 +121,8 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                     </div>
                 </article>
 
-                <aside className="hidden xl:block">
-                    <div className="sticky top-24 space-y-4">
+                <aside className="hidden self-start xl:block">
+                    <div className="sticky top-24 max-h-[calc(100vh-7rem)] space-y-4 overflow-y-auto pr-1">
                         <InlineTOC
                             items={tocItems}
                             defaultOpen
@@ -128,17 +131,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                         <AdBanner className="rounded-2xl border border-slate-200 bg-white p-3 dark:border-white/15 dark:bg-white/[0.04]" />
                         <div className="rounded-2xl border border-slate-200 bg-white p-4 dark:border-white/15 dark:bg-white/[0.04]">
                             <p className="mb-3 text-sm font-semibold text-slate-700 dark:text-slate-200">Share this post</p>
-                            <div className="grid grid-cols-3 gap-2">
-                                <button className="rounded-lg border border-slate-300 bg-slate-50 py-1.5 text-xs text-slate-700 dark:border-white/15 dark:bg-black/20 dark:text-slate-300">
-                                    X
-                                </button>
-                                <button className="rounded-lg border border-slate-300 bg-slate-50 py-1.5 text-xs text-slate-700 dark:border-white/15 dark:bg-black/20 dark:text-slate-300">
-                                    in
-                                </button>
-                                <button className="rounded-lg border border-slate-300 bg-slate-50 py-1.5 text-xs text-slate-700 dark:border-white/15 dark:bg-black/20 dark:text-slate-300">
-                                    copy
-                                </button>
-                            </div>
+                            <ShareButtons title={shareTitle} url={shareUrl} />
                         </div>
                     </div>
                 </aside>

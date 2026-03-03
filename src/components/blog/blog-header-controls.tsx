@@ -38,7 +38,7 @@ function SearchLargeButton() {
             <span className="ml-auto inline-flex items-center gap-1">
                 {hotKey.map((key, index) => (
                     <kbd
-                        key={`${index}-${String(key.display)}`}
+                        key={index}
                         className="rounded border border-slate-300 bg-slate-50 px-1.5 py-0 text-xs text-slate-500 dark:border-white/15 dark:bg-black/40 dark:text-slate-400"
                     >
                         {key.display}
