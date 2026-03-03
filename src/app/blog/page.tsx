@@ -1,92 +1,94 @@
-import { getAllBlogPosts } from '@/lib/mdx'
-import { Button } from '@/components/ui/button'
-import { Calendar, ArrowLeft } from 'lucide-react'
-import Link from 'next/link'
+import { blogSource } from '@/lib/source';
+import { DocsPage, DocsDescription, DocsBody, DocsTitle } from 'fumadocs-ui/layouts/docs/page';
+import { Calendar, ArrowRight } from 'lucide-react';
+import Link from 'next/link';
+import { AdBanner } from '@/components/ads-banner';
 
 export const metadata = {
     title: 'Blog - Wayan Tisna',
     description: 'Articles about software development, best practices, and tech insights',
-}
+};
 
-export default async function BlogPage() {
-    const posts = await getAllBlogPosts()
+export default function BlogListingPage() {
+    const pages = blogSource.getPages();
+
+    // Sort by publishedAt descending
+    const posts = pages
+        .filter((p) => p.data.publishedAt)
+        .sort(
+            (a, b) =>
+                new Date(b.data.publishedAt!).getTime() -
+                new Date(a.data.publishedAt!).getTime(),
+        );
 
     return (
-        <main className="bg-white dark:bg-slate-950 min-h-screen">
-            {/* Header */}
-            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-slate-900 dark:to-slate-800 py-12 md:py-20 px-4 md:px-8">
-                <div className="max-w-4xl mx-auto">
-                    <Link href="/" className="inline-flex items-center text-blue-600 dark:text-blue-400 hover:text-blue-700 mb-6">
-                        <ArrowLeft className="w-4 h-4 mr-2" />
-                        Back to Home
-                    </Link>
-                    <h1 className="text-4xl md:text-5xl font-bold text-slate-900 dark:text-white mb-4">Blog</h1>
-                    <p className="text-lg text-slate-600 dark:text-slate-400">
-                        Articles about software development, best practices, and tech insights
-                    </p>
-                </div>
-            </div>
+        <DocsPage full>
+            <DocsTitle>Blog</DocsTitle>
+            <DocsDescription>
+                Articles about software development, best practices, and tech insights.
+            </DocsDescription>
 
-            {/* Blog Posts */}
-            <div className="max-w-4xl mx-auto px-4 md:px-8 py-16">
+            <DocsBody>
+                {/* Ad Banner */}
+                <AdBanner className="mb-8" />
+
                 {posts.length === 0 ? (
                     <div className="text-center py-12">
-                        <p className="text-slate-600 dark:text-slate-400 text-lg">No blog posts yet.</p>
+                        <p className="text-fd-muted-foreground text-lg">No blog posts yet.</p>
                     </div>
                 ) : (
-                    <div className="space-y-8">
+                    <div className="space-y-6 not-prose">
                         {posts.map((post) => (
                             <article
-                                key={post.slug}
-                                className="border-b border-slate-200 dark:border-slate-700 pb-8 last:border-0"
+                                key={post.url}
+                                className="group rounded-xl border border-fd-border bg-fd-card p-6 transition-all hover:border-emerald-500/50 hover:shadow-md dark:hover:border-emerald-400/40"
                             >
-                                <div className="flex flex-col sm:flex-row justify-between sm:items-start gap-4 mb-4">
-                                    <div className="flex-grow">
-                                        <h2 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white mb-2">
-                                            {post.frontmatter.title}
-                                        </h2>
-                                        <p className="text-slate-600 dark:text-slate-400 mb-4 line-clamp-2">
-                                            {post.frontmatter.description}
-                                        </p>
-                                    </div>
-                                </div>
-
-                                {/* Metadata */}
-                                <div className="flex flex-wrap items-center gap-4 text-sm text-slate-600 dark:text-slate-400 mb-4">
-                                    <span className="flex items-center gap-1">
-                                        <Calendar className="w-4 h-4" />
-                                        {new Date(post.frontmatter.publishedAt).toLocaleDateString('en-US', {
-                                            year: 'numeric',
-                                            month: 'long',
-                                            day: 'numeric',
-                                        })}
-                                    </span>
-                                    <span>by {post.frontmatter.author}</span>
-                                </div>
-
                                 {/* Tags */}
-                                <div className="flex flex-wrap gap-2 mb-4">
-                                    {post.frontmatter.tags.map((tag) => (
+                                <div className="mb-3 flex flex-wrap gap-2">
+                                    {post.data.tags.map((tag: string) => (
                                         <span
                                             key={tag}
-                                            className="inline-block bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs font-semibold px-3 py-1 rounded-full"
+                                            className="inline-block rounded-full bg-emerald-100 px-3 py-0.5 text-xs font-semibold text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300"
                                         >
                                             {tag}
                                         </span>
                                     ))}
                                 </div>
 
-                                {/* Read More Link */}
-                                <Link href={`/blog/${post.slug}`}>
-                                    <Button variant="outline" size="sm">
-                                        Read Article →
-                                    </Button>
-                                </Link>
+                                <h2 className="mb-2 text-xl font-bold text-fd-foreground group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                                    <Link href={post.url}>{post.data.title}</Link>
+                                </h2>
+
+                                <p className="mb-4 text-fd-muted-foreground line-clamp-2">
+                                    {post.data.description}
+                                </p>
+
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-4 text-sm text-fd-muted-foreground">
+                                        {post.data.publishedAt && (
+                                            <span className="flex items-center gap-1">
+                                                <Calendar className="h-4 w-4" />
+                                                {new Date(post.data.publishedAt).toLocaleDateString('en-US', {
+                                                    year: 'numeric',
+                                                    month: 'long',
+                                                    day: 'numeric',
+                                                })}
+                                            </span>
+                                        )}
+                                        {post.data.author && <span>by {post.data.author}</span>}
+                                    </div>
+                                    <Link
+                                        href={post.url}
+                                        className="inline-flex items-center gap-1 rounded-lg border border-emerald-300 px-3 py-1.5 text-sm font-medium text-emerald-700 hover:bg-emerald-50 dark:border-emerald-700 dark:text-emerald-400 dark:hover:bg-emerald-900/20 transition-colors"
+                                    >
+                                        Read more <ArrowRight className="h-3 w-3" />
+                                    </Link>
+                                </div>
                             </article>
                         ))}
                     </div>
                 )}
-            </div>
-        </main>
-    )
+            </DocsBody>
+        </DocsPage>
+    );
 }

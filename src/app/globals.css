@@ -1,4 +1,6 @@
 @import "tailwindcss";
+@import "fumadocs-ui/css/emerald.css";
+@import "fumadocs-ui/css/preset.css";
 
 :root {
   --background: linear-gradient(135deg, #f0fdf4 0%, #f5f7f6 100%);

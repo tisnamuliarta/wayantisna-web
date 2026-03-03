@@ -1,32 +1,18 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useTheme } from 'next-themes'
 import { Moon, Sun } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { useEffect, useState } from 'react'
 
 export function ThemeToggle() {
-    const [theme, setTheme] = useState<'light' | 'dark'>('light')
+    const { theme, setTheme } = useTheme()
     const [mounted, setMounted] = useState(false)
 
+    // Prevent hydration mismatch
     useEffect(() => {
         setMounted(true)
-        const storedTheme = localStorage.getItem('theme') as 'light' | 'dark' | null
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-        const initialTheme = storedTheme || (prefersDark ? 'dark' : 'light')
-        setTheme(initialTheme)
     }, [])
-
-    const toggleTheme = () => {
-        const newTheme = theme === 'light' ? 'dark' : 'light'
-        setTheme(newTheme)
-        localStorage.setItem('theme', newTheme)
-
-        if (newTheme === 'dark') {
-            document.documentElement.classList.add('dark')
-        } else {
-            document.documentElement.classList.remove('dark')
-        }
-    }
 
     if (!mounted) {
         return (
@@ -45,7 +31,7 @@ export function ThemeToggle() {
         <Button
             variant="ghost"
             size="sm"
-            onClick={toggleTheme}
+            onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
             className="rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition"
             title="Toggle theme"
         >
@@ -57,3 +43,4 @@ export function ThemeToggle() {
         </Button>
     )
 }
+
