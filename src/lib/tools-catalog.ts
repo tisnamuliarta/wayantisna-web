@@ -113,7 +113,7 @@ export const toolsCatalog: ToolDefinition[] = [
     {
         slug: 'code-diff-checker',
         title: 'Code Diff Checker',
-        description: 'Compare two code blocks side by side and highlight differences.',
+        description: 'Compare two code blocks in a GitLens-style side-by-side Monaco diff view.',
         category: 'Comparators',
     },
     {
