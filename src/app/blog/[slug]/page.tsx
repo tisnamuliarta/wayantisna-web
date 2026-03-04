@@ -73,22 +73,22 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     };
 
     return (
-        <main className="mx-auto w-full max-w-[1300px] px-4 py-10 md:px-8 md:py-12">
+        <main className="mx-auto w-full max-w-[1300px] bg-[#f5f5f5] px-4 py-10 font-sans text-fd-foreground dark:bg-fd-background md:px-8 md:py-12">
             <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
             <div className="grid gap-10 xl:grid-cols-[minmax(0,1fr)_290px]">
                 <article>
                     <Link
                         href="/blog"
-                        className="mb-6 inline-flex items-center gap-1 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 transition hover:bg-slate-100 dark:border-white/20 dark:bg-white/5 dark:text-slate-200 dark:hover:bg-white/10"
+                        className="mb-6 inline-flex items-center gap-1 rounded-lg border border-fd-border bg-fd-card px-3 py-1.5 text-sm font-medium text-fd-foreground transition hover:bg-fd-muted"
                     >
                         <ChevronLeft className="h-4 w-4" />
                         All Posts
                     </Link>
 
-                    <h1 className="max-w-4xl text-balance text-4xl font-semibold tracking-tight text-slate-900 md:text-6xl dark:text-white">{page.data.title}</h1>
+                    <h1 className="max-w-4xl text-balance text-4xl font-semibold tracking-tight text-slate-900 dark:text-fd-foreground md:text-6xl">{page.data.title}</h1>
 
-                    <div className="mt-4 flex flex-wrap items-center gap-3 text-sm text-slate-600 dark:text-slate-300">
+                    <div className="mt-4 flex flex-wrap items-center gap-3 text-sm text-fd-muted-foreground">
                         <span>{page.data.tags[0] ?? 'Development'}</span>
                         <span>-</span>
                         {page.data.publishedAt && (
@@ -112,7 +112,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                         <InlineTOC
                             items={tocItems}
                             defaultOpen
-                            className="border-slate-200 bg-white text-slate-700 dark:border-white/15 dark:bg-white/[0.04] dark:text-slate-200"
+                            className="border-fd-border bg-fd-card text-fd-foreground"
                         />
                     </div>
 
@@ -126,11 +126,11 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                         <InlineTOC
                             items={tocItems}
                             defaultOpen
-                            className="max-h-[52vh] overflow-y-auto border-slate-200 bg-white pr-1 text-slate-700 dark:border-white/15 dark:bg-white/[0.04] dark:text-slate-200"
+                            className="max-h-[52vh] overflow-y-auto border-fd-border bg-fd-card pr-1 text-fd-foreground"
                         />
-                        <AdBanner className="rounded-2xl border border-slate-200 bg-white p-3 dark:border-white/15 dark:bg-white/[0.04]" />
-                        <div className="rounded-2xl border border-slate-200 bg-white p-4 dark:border-white/15 dark:bg-white/[0.04]">
-                            <p className="mb-3 text-sm font-semibold text-slate-700 dark:text-slate-200">Share this post</p>
+                        <AdBanner className="rounded-2xl border border-fd-border bg-fd-card p-3" />
+                        <div className="rounded-2xl border border-fd-border bg-fd-card p-4">
+                            <p className="mb-3 text-sm font-semibold text-fd-foreground">Share this post</p>
                             <ShareButtons title={shareTitle} url={shareUrl} />
                         </div>
                     </div>

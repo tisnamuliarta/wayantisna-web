@@ -6,13 +6,13 @@ export default function BlogLayout({ children }: { children: ReactNode }) {
     return (
         <FumaHomeLayout
             {...baseOptions()}
-            className="bg-transparent"
+            className="bg-[#f5f5f5] text-fd-foreground dark:bg-fd-background"
             nav={{
                 title: 'Wayan Tisna',
                 url: '/',
             }}
         >
-            {children}
+            <div className="min-h-screen bg-[#f5f5f5] font-sans text-fd-foreground dark:bg-fd-background">{children}</div>
         </FumaHomeLayout>
     );
 }
