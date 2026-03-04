@@ -1,4 +1,5 @@
 import { AdBanner } from '@/components/ads-banner';
+import { PageFeedback } from '@/components/tools/page-feedback';
 import { ToolRenderer } from '@/components/tools/tool-renderer';
 import { getToolBySlug, toolsCatalog } from '@/lib/tools-catalog';
 import type { Metadata } from 'next';
@@ -48,6 +49,9 @@ export default async function ToolDetailPage({ params }: ToolDetailPageProps) {
 
     if (!tool) notFound();
     const isWideTool = wideToolSlugs.has(slug);
+    const currentIndex = toolsCatalog.findIndex((item) => item.slug === slug);
+    const prevTool = currentIndex > 0 ? toolsCatalog[currentIndex - 1] : null;
+    const nextTool = currentIndex >= 0 && currentIndex < toolsCatalog.length - 1 ? toolsCatalog[currentIndex + 1] : null;
 
     return (
         <main className="mx-auto w-full max-w-[1360px] px-4 py-10 md:px-8 md:py-14">
@@ -79,6 +83,40 @@ export default async function ToolDetailPage({ params }: ToolDetailPageProps) {
                     </aside>
                 </div>
             )}
+
+            <section className="mt-10 space-y-6">
+                <div className="grid gap-3 md:grid-cols-2">
+                    {prevTool ? (
+                        <Link
+                            href={`/tools/${prevTool.slug}`}
+                            className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm transition hover:border-cyan-300 hover:bg-cyan-50 dark:border-slate-800 dark:bg-slate-950 dark:hover:border-cyan-800 dark:hover:bg-cyan-950/20"
+                        >
+                            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Previous tool</p>
+                            <p className="mt-1 font-medium text-slate-800 dark:text-slate-100">← {prevTool.title}</p>
+                        </Link>
+                    ) : (
+                        <div className="rounded-xl border border-dashed border-slate-300 px-4 py-3 text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400">
+                            You are on the first tool.
+                        </div>
+                    )}
+
+                    {nextTool ? (
+                        <Link
+                            href={`/tools/${nextTool.slug}`}
+                            className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-right text-sm transition hover:border-cyan-300 hover:bg-cyan-50 dark:border-slate-800 dark:bg-slate-950 dark:hover:border-cyan-800 dark:hover:bg-cyan-950/20"
+                        >
+                            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Next tool</p>
+                            <p className="mt-1 font-medium text-slate-800 dark:text-slate-100">{nextTool.title} →</p>
+                        </Link>
+                    ) : (
+                        <div className="rounded-xl border border-dashed border-slate-300 px-4 py-3 text-right text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400">
+                            You are on the last tool.
+                        </div>
+                    )}
+                </div>
+
+                <PageFeedback pageKey={`tool:${slug}`} />
+            </section>
         </main>
     );
 }
