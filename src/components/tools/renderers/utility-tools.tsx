@@ -355,11 +355,20 @@ export function JsonSchemaValidatorTool() {
                     <Button size="sm" className={compactButtonClass} variant={mode === 'batch-array' ? 'default' : 'outline'} onClick={() => setMode('batch-array')}>
                         Batch Array
                     </Button>
-                    <input type="number" min={5} max={500} value={maxErrors} onChange={(e) => setMaxErrors(Number(e.target.value))} className={`${inputClass} w-28`} />
+                    <label className="inline-flex items-center gap-2 text-xs text-slate-700 dark:text-slate-200">
+                        Max Errors
+                        <input type="number" min={5} max={500} value={maxErrors} onChange={(e) => setMaxErrors(Number(e.target.value))} className={`${inputClass} w-28`} />
+                    </label>
                 </div>
                 <div className="grid gap-3 md:grid-cols-2">
-                    <textarea value={schemaText} onChange={(e) => setSchemaText(e.target.value)} className={`${textAreaClass} h-40`} placeholder="JSON Schema" />
-                    <textarea value={dataText} onChange={(e) => setDataText(e.target.value)} className={`${textAreaClass} h-40`} placeholder="JSON Data" />
+                    <label className="text-sm">
+                        <SectionLabel>JSON Schema</SectionLabel>
+                        <textarea value={schemaText} onChange={(e) => setSchemaText(e.target.value)} className={`${textAreaClass} h-40`} placeholder="JSON Schema" />
+                    </label>
+                    <label className="text-sm">
+                        <SectionLabel>JSON Data</SectionLabel>
+                        <textarea value={dataText} onChange={(e) => setDataText(e.target.value)} className={`${textAreaClass} h-40`} placeholder="JSON Data" />
+                    </label>
                 </div>
                 <Button size="sm" className={compactButtonClass} onClick={onValidate}>
                     <CheckCircle2 className="h-3.5 w-3.5" />
@@ -423,8 +432,14 @@ export function MarkdownToHtmlConverterTool() {
         <ToolCard>
             <div className="space-y-4">
                 <div className="grid gap-3 md:grid-cols-2">
-                    <textarea value={markdown} onChange={(e) => setMarkdown(e.target.value)} className={`${textAreaClass} h-44`} />
-                    <pre className="max-h-44 overflow-auto rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs dark:border-slate-700 dark:bg-slate-900">{html}</pre>
+                    <label className="text-sm">
+                        <SectionLabel>Markdown Input</SectionLabel>
+                        <textarea value={markdown} onChange={(e) => setMarkdown(e.target.value)} className={`${textAreaClass} h-44`} />
+                    </label>
+                    <div className="space-y-2">
+                        <SectionLabel>HTML Output</SectionLabel>
+                        <pre className="max-h-44 overflow-auto rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs dark:border-slate-700 dark:bg-slate-900">{html}</pre>
+                    </div>
                 </div>
                 <CopyButton value={html} className={compactButtonClass} />
                 <div className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-950">
@@ -492,7 +507,10 @@ export function CsvJsonConverterTool() {
                     <Button size="sm" className={compactButtonClass} variant={mode === 'json-to-csv' ? 'default' : 'outline'} onClick={() => setMode('json-to-csv')}>
                         JSON to CSV
                     </Button>
-                    <input value={delimiter} onChange={(e) => setDelimiter(e.target.value.slice(0, 1))} className={`${inputClass} w-14`} />
+                    <label className="inline-flex items-center gap-2 text-xs text-slate-700 dark:text-slate-200">
+                        Delimiter
+                        <input value={delimiter} onChange={(e) => setDelimiter(e.target.value.slice(0, 1))} className={`${inputClass} w-14`} />
+                    </label>
                     <label className="inline-flex items-center gap-1 rounded-lg border border-slate-300 px-2 py-1.5 text-xs dark:border-slate-700">
                         <input type="checkbox" checked={csvHasHeader} onChange={(e) => setCsvHasHeader(e.target.checked)} className="h-3.5 w-3.5" />
                         Header row
@@ -505,8 +523,14 @@ export function CsvJsonConverterTool() {
                     ) : null}
                 </div>
                 <div className="grid gap-3 md:grid-cols-2">
-                    <textarea value={input} onChange={(e) => setInput(e.target.value)} className={`${textAreaClass} h-40`} />
-                    <textarea value={output} readOnly className={`${textAreaClass} h-40`} />
+                    <label className="text-sm">
+                        <SectionLabel>{mode === 'csv-to-json' ? 'CSV Input' : 'JSON Input'}</SectionLabel>
+                        <textarea value={input} onChange={(e) => setInput(e.target.value)} className={`${textAreaClass} h-40`} />
+                    </label>
+                    <label className="text-sm">
+                        <SectionLabel>{mode === 'csv-to-json' ? 'JSON Output' : 'CSV Output'}</SectionLabel>
+                        <textarea value={output} readOnly className={`${textAreaClass} h-40`} />
+                    </label>
                 </div>
                 <div className="flex flex-wrap gap-2">
                     <Button size="sm" className={compactButtonClass} onClick={onConvert}>Convert</Button>
@@ -608,7 +632,10 @@ export function UnixTimestampConverterTool() {
                     </label>
                 </div>
                 <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto]">
-                    <input value={relativeInput} onChange={(e) => setRelativeInput(e.target.value)} className={inputClass} placeholder="Relative time (e.g. now+15m, now-2h)" />
+                    <label className="text-sm">
+                        <SectionLabel>Relative Expression</SectionLabel>
+                        <input value={relativeInput} onChange={(e) => setRelativeInput(e.target.value)} className={inputClass} placeholder="Relative time (e.g. now+15m, now-2h)" />
+                    </label>
                     <div className="flex gap-2">
                         <Button size="sm" className={compactButtonClass} variant="outline" onClick={() => setReferenceNowMs(Date.now())}>
                             Refresh Now
@@ -702,8 +729,14 @@ export function CssJsMinifierTool() {
                     <Button size="sm" className={compactButtonClass} variant={mode === 'js' ? 'default' : 'outline'} onClick={() => setMode('js')}>JS</Button>
                 </div>
                 <div className="grid gap-3 md:grid-cols-2">
-                    <textarea value={input} onChange={(e) => setInput(e.target.value)} className={`${textAreaClass} h-40`} />
-                    <textarea value={output} readOnly className={`${textAreaClass} h-40`} />
+                    <label className="text-sm">
+                        <SectionLabel>{mode.toUpperCase()} Input</SectionLabel>
+                        <textarea value={input} onChange={(e) => setInput(e.target.value)} className={`${textAreaClass} h-40`} />
+                    </label>
+                    <label className="text-sm">
+                        <SectionLabel>Minified Output</SectionLabel>
+                        <textarea value={output} readOnly className={`${textAreaClass} h-40`} />
+                    </label>
                 </div>
                 <CopyButton value={output} className={compactButtonClass} />
             </div>
@@ -740,8 +773,14 @@ export function HtmlEntityEncoderTool() {
                     <Button size="sm" className={compactButtonClass} variant={mode === 'decode' ? 'default' : 'outline'} onClick={() => setMode('decode')}>Decode</Button>
                 </div>
                 <div className="grid gap-3 md:grid-cols-2">
-                    <textarea value={input} onChange={(e) => setInput(e.target.value)} className={`${textAreaClass} h-36`} />
-                    <textarea value={output} readOnly className={`${textAreaClass} h-36`} />
+                    <label className="text-sm">
+                        <SectionLabel>Input</SectionLabel>
+                        <textarea value={input} onChange={(e) => setInput(e.target.value)} className={`${textAreaClass} h-36`} />
+                    </label>
+                    <label className="text-sm">
+                        <SectionLabel>Output</SectionLabel>
+                        <textarea value={output} readOnly className={`${textAreaClass} h-36`} />
+                    </label>
                 </div>
                 <CopyButton value={output} className={compactButtonClass} />
             </div>
@@ -798,10 +837,19 @@ export function IpSubnetCalculatorTool() {
     return (
         <ToolCard>
             <div className="space-y-4">
-                <input value={cidr} onChange={(e) => setCidr(e.target.value)} className={inputClass} placeholder="192.168.1.10/24" />
+                <label className="text-sm">
+                    <SectionLabel>CIDR Input</SectionLabel>
+                    <input value={cidr} onChange={(e) => setCidr(e.target.value)} className={inputClass} placeholder="192.168.1.10/24" />
+                </label>
                 <div className="grid gap-3 md:grid-cols-2">
-                    <input type="number" min={0} max={32} value={newPrefix} onChange={(e) => setNewPrefix(Number(e.target.value))} className={inputClass} placeholder="Subnet split prefix" />
-                    <input type="number" min={1} max={32} value={previewSubnets} onChange={(e) => setPreviewSubnets(Number(e.target.value))} className={inputClass} placeholder="Preview subnets" />
+                    <label className="text-sm">
+                        <SectionLabel>Subnet Split Prefix</SectionLabel>
+                        <input type="number" min={0} max={32} value={newPrefix} onChange={(e) => setNewPrefix(Number(e.target.value))} className={inputClass} placeholder="Subnet split prefix" />
+                    </label>
+                    <label className="text-sm">
+                        <SectionLabel>Preview Subnets</SectionLabel>
+                        <input type="number" min={1} max={32} value={previewSubnets} onChange={(e) => setPreviewSubnets(Number(e.target.value))} className={inputClass} placeholder="Preview subnets" />
+                    </label>
                 </div>
                 {result ? (
                     <div className="grid gap-2 rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs dark:border-slate-700 dark:bg-slate-900">
@@ -868,7 +916,10 @@ export function PasswordStrengthCheckerTool() {
     return (
         <ToolCard>
             <div className="space-y-4">
-                <input type="text" value={password} onChange={(e) => setPassword(e.target.value)} className={inputClass} placeholder="Enter password to evaluate" />
+                <label className="text-sm">
+                    <SectionLabel>Password</SectionLabel>
+                    <input type="text" value={password} onChange={(e) => setPassword(e.target.value)} className={inputClass} placeholder="Enter password to evaluate" />
+                </label>
                 <label className="text-sm">
                     <SectionLabel>Offline guesses/sec assumption</SectionLabel>
                     <input type="number" min={1000} max={1e13} step={1000} value={guessesPerSecond} onChange={(e) => setGuessesPerSecond(Number(e.target.value))} className={inputClass} />
@@ -944,12 +995,15 @@ export function HashGeneratorTool() {
                         Batch
                     </Button>
                 </div>
-                <textarea
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    className={`${textAreaClass} h-24`}
-                    placeholder={batchMode ? 'One value per line' : 'Text to hash'}
-                />
+                <label className="text-sm">
+                    <SectionLabel>{batchMode ? 'Batch Input' : 'Input Text'}</SectionLabel>
+                    <textarea
+                        value={input}
+                        onChange={(e) => setInput(e.target.value)}
+                        className={`${textAreaClass} h-24`}
+                        placeholder={batchMode ? 'One value per line' : 'Text to hash'}
+                    />
+                </label>
                 <div className="flex flex-wrap gap-2 text-xs">
                     <label className="inline-flex items-center gap-1 rounded-lg border border-slate-300 px-2 py-1.5 dark:border-slate-700">
                         <input type="checkbox" checked={includeSha1} onChange={(e) => setIncludeSha1(e.target.checked)} className="h-3.5 w-3.5" />
@@ -964,7 +1018,12 @@ export function HashGeneratorTool() {
                         HMAC-SHA256
                     </label>
                 </div>
-                {useHmacSha256 ? <input value={hmacSecret} onChange={(e) => setHmacSecret(e.target.value)} className={inputClass} placeholder="HMAC secret key" /> : null}
+                {useHmacSha256 ? (
+                    <label className="text-sm">
+                        <SectionLabel>HMAC Secret Key</SectionLabel>
+                        <input value={hmacSecret} onChange={(e) => setHmacSecret(e.target.value)} className={inputClass} placeholder="HMAC secret key" />
+                    </label>
+                ) : null}
                 <div className="flex flex-wrap gap-2">
                     <Button size="sm" className={compactButtonClass} onClick={genHashes}>
                         <ShieldCheck className="h-3.5 w-3.5" />

@@ -125,7 +125,10 @@ export function SslCertificateCheckerTool() {
         <ToolCard>
             <div className="space-y-4">
                 <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto]">
-                    <input value={target} onChange={(e) => setTarget(e.target.value)} className={inputClass} placeholder="example.com or https://example.com" />
+                    <label className="text-sm">
+                        <SectionLabel>Domain or URL</SectionLabel>
+                        <input value={target} onChange={(e) => setTarget(e.target.value)} className={inputClass} placeholder="example.com or https://example.com" />
+                    </label>
                     <Button size="sm" className={compactButtonClass} onClick={onCheck} disabled={loading}>
                         <ShieldCheck className="h-3.5 w-3.5" />
                         {loading ? 'Checking...' : 'Check Certificate'}
@@ -478,8 +481,14 @@ export function ApiLoadTesterTool() {
                 </div>
 
                 <div className="grid gap-3 md:grid-cols-2">
-                    <textarea value={headersText} onChange={(e) => setHeadersText(e.target.value)} className={`${textAreaClass} h-28`} placeholder='Headers JSON' />
-                    <textarea value={bodyText} onChange={(e) => setBodyText(e.target.value)} className={`${textAreaClass} h-28`} placeholder="Request body (for POST)" />
+                    <label className="text-sm">
+                        <SectionLabel>Headers JSON</SectionLabel>
+                        <textarea value={headersText} onChange={(e) => setHeadersText(e.target.value)} className={`${textAreaClass} h-28`} placeholder='Headers JSON' />
+                    </label>
+                    <label className="text-sm">
+                        <SectionLabel>Request Body</SectionLabel>
+                        <textarea value={bodyText} onChange={(e) => setBodyText(e.target.value)} className={`${textAreaClass} h-28`} placeholder="Request body (for POST)" />
+                    </label>
                 </div>
 
                 <Button size="sm" className={compactButtonClass} onClick={onRun} disabled={running}>
@@ -523,7 +532,10 @@ export function SqlQueryOptimizerTool() {
     return (
         <ToolCard>
             <div className="space-y-4">
-                <textarea value={sql} onChange={(e) => setSql(e.target.value)} className={`${textAreaClass} h-40`} />
+                <label className="text-sm">
+                    <SectionLabel>SQL Query</SectionLabel>
+                    <textarea value={sql} onChange={(e) => setSql(e.target.value)} className={`${textAreaClass} h-40`} />
+                </label>
                 <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm dark:border-slate-700 dark:bg-slate-900">
                     <p className="mb-2 font-semibold">Optimization Notes</p>
                     <ul className="space-y-1 text-xs">
@@ -574,10 +586,22 @@ export function CiCdPipelineGeneratorTool() {
                     ))}
                 </div>
                 <div className="grid gap-3 md:grid-cols-2">
-                    <input value={nodeVersion} onChange={(e) => setNodeVersion(e.target.value)} className={inputClass} placeholder="Node version" />
-                    <input value={installCommand} onChange={(e) => setInstallCommand(e.target.value)} className={inputClass} placeholder="Install command" />
-                    <input value={testCommand} onChange={(e) => setTestCommand(e.target.value)} className={inputClass} placeholder="Test command" />
-                    <input value={deployCommand} onChange={(e) => setDeployCommand(e.target.value)} className={inputClass} placeholder="Deploy command" />
+                    <label className="text-sm">
+                        <SectionLabel>Node Version</SectionLabel>
+                        <input value={nodeVersion} onChange={(e) => setNodeVersion(e.target.value)} className={inputClass} placeholder="Node version" />
+                    </label>
+                    <label className="text-sm">
+                        <SectionLabel>Install Command</SectionLabel>
+                        <input value={installCommand} onChange={(e) => setInstallCommand(e.target.value)} className={inputClass} placeholder="Install command" />
+                    </label>
+                    <label className="text-sm">
+                        <SectionLabel>Test Command</SectionLabel>
+                        <input value={testCommand} onChange={(e) => setTestCommand(e.target.value)} className={inputClass} placeholder="Test command" />
+                    </label>
+                    <label className="text-sm">
+                        <SectionLabel>Deploy Command</SectionLabel>
+                        <input value={deployCommand} onChange={(e) => setDeployCommand(e.target.value)} className={inputClass} placeholder="Deploy command" />
+                    </label>
                 </div>
                 <label className="text-sm">
                     <input type="checkbox" checked={includeDeploy} onChange={(e) => setIncludeDeploy(e.target.checked)} className="mr-2" />
@@ -612,14 +636,26 @@ export function DockerComposeGeneratorTool() {
         <ToolCard>
             <div className="space-y-4">
                 <div className="grid gap-3 md:grid-cols-2">
-                    <input value={projectName} onChange={(e) => setProjectName(e.target.value)} className={inputClass} placeholder="Project name" />
-                    <input value={image} onChange={(e) => setImage(e.target.value)} className={inputClass} placeholder="App image" />
-                    <input type="number" value={appPort} onChange={(e) => setAppPort(Number(e.target.value))} className={inputClass} />
-                    <select value={dbType} onChange={(e) => setDbType(e.target.value as typeof dbType)} className={inputClass}>
-                        <option value="none">No DB</option>
-                        <option value="postgres">PostgreSQL</option>
-                        <option value="mysql">MySQL</option>
-                    </select>
+                    <label className="text-sm">
+                        <SectionLabel>Project Name</SectionLabel>
+                        <input value={projectName} onChange={(e) => setProjectName(e.target.value)} className={inputClass} placeholder="Project name" />
+                    </label>
+                    <label className="text-sm">
+                        <SectionLabel>App Image</SectionLabel>
+                        <input value={image} onChange={(e) => setImage(e.target.value)} className={inputClass} placeholder="App image" />
+                    </label>
+                    <label className="text-sm">
+                        <SectionLabel>App Port</SectionLabel>
+                        <input type="number" value={appPort} onChange={(e) => setAppPort(Number(e.target.value))} className={inputClass} />
+                    </label>
+                    <label className="text-sm">
+                        <SectionLabel>Database</SectionLabel>
+                        <select value={dbType} onChange={(e) => setDbType(e.target.value as typeof dbType)} className={inputClass}>
+                            <option value="none">No DB</option>
+                            <option value="postgres">PostgreSQL</option>
+                            <option value="mysql">MySQL</option>
+                        </select>
+                    </label>
                 </div>
                 <label className="text-sm">
                     <input type="checkbox" checked={includeRedis} onChange={(e) => setIncludeRedis(e.target.checked)} className="mr-2" />
@@ -682,24 +718,63 @@ export function KubernetesYamlGeneratorTool() {
         <ToolCard>
             <div className="space-y-4">
                 <div className="grid gap-3 md:grid-cols-2">
-                    <input value={name} onChange={(e) => setName(e.target.value)} className={inputClass} placeholder="App name" />
-                    <input value={image} onChange={(e) => setImage(e.target.value)} className={inputClass} placeholder="Container image" />
-                    <input type="number" value={replicas} onChange={(e) => setReplicas(Number(e.target.value))} className={inputClass} />
-                    <input type="number" value={containerPort} onChange={(e) => setContainerPort(Number(e.target.value))} className={inputClass} />
-                    <input type="number" value={servicePort} onChange={(e) => setServicePort(Number(e.target.value))} className={inputClass} />
-                    <select value={serviceType} onChange={(e) => setServiceType(e.target.value as typeof serviceType)} className={inputClass}>
-                        <option value="ClusterIP">ClusterIP</option>
-                        <option value="LoadBalancer">LoadBalancer</option>
-                        <option value="NodePort">NodePort</option>
-                    </select>
-                    <input value={cpuRequest} onChange={(e) => setCpuRequest(e.target.value)} className={inputClass} placeholder="CPU request (e.g. 250m)" />
-                    <input value={memoryRequest} onChange={(e) => setMemoryRequest(e.target.value)} className={inputClass} placeholder="Memory request (e.g. 256Mi)" />
-                    <input value={cpuLimit} onChange={(e) => setCpuLimit(e.target.value)} className={inputClass} placeholder="CPU limit (e.g. 1000m)" />
-                    <input value={memoryLimit} onChange={(e) => setMemoryLimit(e.target.value)} className={inputClass} placeholder="Memory limit (e.g. 512Mi)" />
-                    <input value={livenessPath} onChange={(e) => setLivenessPath(e.target.value)} className={inputClass} placeholder="Liveness path" />
-                    <input value={readinessPath} onChange={(e) => setReadinessPath(e.target.value)} className={inputClass} placeholder="Readiness path" />
+                    <label className="text-sm">
+                        <SectionLabel>App Name</SectionLabel>
+                        <input value={name} onChange={(e) => setName(e.target.value)} className={inputClass} placeholder="App name" />
+                    </label>
+                    <label className="text-sm">
+                        <SectionLabel>Container Image</SectionLabel>
+                        <input value={image} onChange={(e) => setImage(e.target.value)} className={inputClass} placeholder="Container image" />
+                    </label>
+                    <label className="text-sm">
+                        <SectionLabel>Replicas</SectionLabel>
+                        <input type="number" value={replicas} onChange={(e) => setReplicas(Number(e.target.value))} className={inputClass} />
+                    </label>
+                    <label className="text-sm">
+                        <SectionLabel>Container Port</SectionLabel>
+                        <input type="number" value={containerPort} onChange={(e) => setContainerPort(Number(e.target.value))} className={inputClass} />
+                    </label>
+                    <label className="text-sm">
+                        <SectionLabel>Service Port</SectionLabel>
+                        <input type="number" value={servicePort} onChange={(e) => setServicePort(Number(e.target.value))} className={inputClass} />
+                    </label>
+                    <label className="text-sm">
+                        <SectionLabel>Service Type</SectionLabel>
+                        <select value={serviceType} onChange={(e) => setServiceType(e.target.value as typeof serviceType)} className={inputClass}>
+                            <option value="ClusterIP">ClusterIP</option>
+                            <option value="LoadBalancer">LoadBalancer</option>
+                            <option value="NodePort">NodePort</option>
+                        </select>
+                    </label>
+                    <label className="text-sm">
+                        <SectionLabel>CPU Request</SectionLabel>
+                        <input value={cpuRequest} onChange={(e) => setCpuRequest(e.target.value)} className={inputClass} placeholder="CPU request (e.g. 250m)" />
+                    </label>
+                    <label className="text-sm">
+                        <SectionLabel>Memory Request</SectionLabel>
+                        <input value={memoryRequest} onChange={(e) => setMemoryRequest(e.target.value)} className={inputClass} placeholder="Memory request (e.g. 256Mi)" />
+                    </label>
+                    <label className="text-sm">
+                        <SectionLabel>CPU Limit</SectionLabel>
+                        <input value={cpuLimit} onChange={(e) => setCpuLimit(e.target.value)} className={inputClass} placeholder="CPU limit (e.g. 1000m)" />
+                    </label>
+                    <label className="text-sm">
+                        <SectionLabel>Memory Limit</SectionLabel>
+                        <input value={memoryLimit} onChange={(e) => setMemoryLimit(e.target.value)} className={inputClass} placeholder="Memory limit (e.g. 512Mi)" />
+                    </label>
+                    <label className="text-sm">
+                        <SectionLabel>Liveness Path</SectionLabel>
+                        <input value={livenessPath} onChange={(e) => setLivenessPath(e.target.value)} className={inputClass} placeholder="Liveness path" />
+                    </label>
+                    <label className="text-sm">
+                        <SectionLabel>Readiness Path</SectionLabel>
+                        <input value={readinessPath} onChange={(e) => setReadinessPath(e.target.value)} className={inputClass} placeholder="Readiness path" />
+                    </label>
                 </div>
-                <textarea value={envText} onChange={(e) => setEnvText(e.target.value)} className={`${textAreaClass} h-24`} placeholder="Env vars, one per line (KEY=value)" />
+                <label className="text-sm">
+                    <SectionLabel>Environment Variables</SectionLabel>
+                    <textarea value={envText} onChange={(e) => setEnvText(e.target.value)} className={`${textAreaClass} h-24`} placeholder="Env vars, one per line (KEY=value)" />
+                </label>
                 <div className="grid gap-2 text-sm md:grid-cols-2">
                     <label className="inline-flex items-center gap-2">
                         <input type="checkbox" checked={includeIngress} onChange={(e) => setIncludeIngress(e.target.checked)} className="h-3.5 w-3.5" />
@@ -710,12 +785,26 @@ export function KubernetesYamlGeneratorTool() {
                         Include HPA
                     </label>
                 </div>
-                {includeIngress ? <input value={ingressHost} onChange={(e) => setIngressHost(e.target.value)} className={inputClass} placeholder="Ingress host" /> : null}
+                {includeIngress ? (
+                    <label className="text-sm">
+                        <SectionLabel>Ingress Host</SectionLabel>
+                        <input value={ingressHost} onChange={(e) => setIngressHost(e.target.value)} className={inputClass} placeholder="Ingress host" />
+                    </label>
+                ) : null}
                 {includeHpa ? (
                     <div className="grid gap-3 md:grid-cols-3">
-                        <input type="number" min={1} value={hpaMin} onChange={(e) => setHpaMin(Number(e.target.value))} className={inputClass} placeholder="HPA min" />
-                        <input type="number" min={1} value={hpaMax} onChange={(e) => setHpaMax(Number(e.target.value))} className={inputClass} placeholder="HPA max" />
-                        <input type="number" min={10} max={95} value={hpaCpuTarget} onChange={(e) => setHpaCpuTarget(Number(e.target.value))} className={inputClass} placeholder="CPU target %" />
+                        <label className="text-sm">
+                            <SectionLabel>HPA Min</SectionLabel>
+                            <input type="number" min={1} value={hpaMin} onChange={(e) => setHpaMin(Number(e.target.value))} className={inputClass} placeholder="HPA min" />
+                        </label>
+                        <label className="text-sm">
+                            <SectionLabel>HPA Max</SectionLabel>
+                            <input type="number" min={1} value={hpaMax} onChange={(e) => setHpaMax(Number(e.target.value))} className={inputClass} placeholder="HPA max" />
+                        </label>
+                        <label className="text-sm">
+                            <SectionLabel>HPA CPU Target %</SectionLabel>
+                            <input type="number" min={10} max={95} value={hpaCpuTarget} onChange={(e) => setHpaCpuTarget(Number(e.target.value))} className={inputClass} placeholder="CPU target %" />
+                        </label>
                     </div>
                 ) : null}
                 <pre className="max-h-96 overflow-auto rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs dark:border-slate-700 dark:bg-slate-900">{output}</pre>
@@ -747,16 +836,34 @@ export function GraphqlQueryBuilderTool() {
         <ToolCard>
             <div className="space-y-4">
                 <div className="grid gap-3 md:grid-cols-2">
-                    <select value={operation} onChange={(e) => setOperation(e.target.value as typeof operation)} className={inputClass}>
-                        <option value="query">query</option>
-                        <option value="mutation">mutation</option>
-                    </select>
-                    <input value={operationName} onChange={(e) => setOperationName(e.target.value)} className={inputClass} placeholder="Operation name" />
-                    <input value={variableDefs} onChange={(e) => setVariableDefs(e.target.value)} className={inputClass} placeholder="Variable defs" />
-                    <input value={rootField} onChange={(e) => setRootField(e.target.value)} className={inputClass} placeholder="Root field" />
+                    <label className="text-sm">
+                        <SectionLabel>Operation Type</SectionLabel>
+                        <select value={operation} onChange={(e) => setOperation(e.target.value as typeof operation)} className={inputClass}>
+                            <option value="query">query</option>
+                            <option value="mutation">mutation</option>
+                        </select>
+                    </label>
+                    <label className="text-sm">
+                        <SectionLabel>Operation Name</SectionLabel>
+                        <input value={operationName} onChange={(e) => setOperationName(e.target.value)} className={inputClass} placeholder="Operation name" />
+                    </label>
+                    <label className="text-sm">
+                        <SectionLabel>Variable Definitions</SectionLabel>
+                        <input value={variableDefs} onChange={(e) => setVariableDefs(e.target.value)} className={inputClass} placeholder="Variable defs" />
+                    </label>
+                    <label className="text-sm">
+                        <SectionLabel>Root Field</SectionLabel>
+                        <input value={rootField} onChange={(e) => setRootField(e.target.value)} className={inputClass} placeholder="Root field" />
+                    </label>
                 </div>
-                <input value={argumentsText} onChange={(e) => setArgumentsText(e.target.value)} className={inputClass} placeholder="Arguments" />
-                <textarea value={fields} onChange={(e) => setFields(e.target.value)} className={`${textAreaClass} h-32`} placeholder="Field selection, one per line" />
+                <label className="text-sm">
+                    <SectionLabel>Arguments</SectionLabel>
+                    <input value={argumentsText} onChange={(e) => setArgumentsText(e.target.value)} className={inputClass} placeholder="Arguments" />
+                </label>
+                <label className="text-sm">
+                    <SectionLabel>Selection Fields</SectionLabel>
+                    <textarea value={fields} onChange={(e) => setFields(e.target.value)} className={`${textAreaClass} h-32`} placeholder="Field selection, one per line" />
+                </label>
                 <pre className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs dark:border-slate-700 dark:bg-slate-900">{query}</pre>
                 <CopyButton value={query} className={compactButtonClass} />
             </div>
@@ -845,22 +952,46 @@ export function WebhookTesterTool() {
         <ToolCard>
             <div className="space-y-4">
                 <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_130px]">
-                    <input value={url} onChange={(e) => setUrl(e.target.value)} className={inputClass} placeholder="https://your-webhook-endpoint" />
-                    <select value={method} onChange={(e) => setMethod(e.target.value as typeof method)} className={inputClass}>
-                        <option value="POST">POST</option>
-                        <option value="PUT">PUT</option>
-                        <option value="PATCH">PATCH</option>
-                    </select>
+                    <label className="text-sm">
+                        <SectionLabel>Webhook URL</SectionLabel>
+                        <input value={url} onChange={(e) => setUrl(e.target.value)} className={inputClass} placeholder="https://your-webhook-endpoint" />
+                    </label>
+                    <label className="text-sm">
+                        <SectionLabel>Method</SectionLabel>
+                        <select value={method} onChange={(e) => setMethod(e.target.value as typeof method)} className={inputClass}>
+                            <option value="POST">POST</option>
+                            <option value="PUT">PUT</option>
+                            <option value="PATCH">PATCH</option>
+                        </select>
+                    </label>
                 </div>
                 <div className="grid gap-3 md:grid-cols-2">
-                    <textarea value={headersText} onChange={(e) => setHeadersText(e.target.value)} className={`${textAreaClass} h-28`} placeholder="Headers JSON" />
-                    <textarea value={bodyText} onChange={(e) => setBodyText(e.target.value)} className={`${textAreaClass} h-28`} placeholder="Body" />
+                    <label className="text-sm">
+                        <SectionLabel>Headers JSON</SectionLabel>
+                        <textarea value={headersText} onChange={(e) => setHeadersText(e.target.value)} className={`${textAreaClass} h-28`} placeholder="Headers JSON" />
+                    </label>
+                    <label className="text-sm">
+                        <SectionLabel>Body</SectionLabel>
+                        <textarea value={bodyText} onChange={(e) => setBodyText(e.target.value)} className={`${textAreaClass} h-28`} placeholder="Body" />
+                    </label>
                 </div>
                 <div className="grid gap-3 md:grid-cols-2">
-                    <input type="number" min={0} max={5} value={retryCount} onChange={(e) => setRetryCount(Number(e.target.value))} className={inputClass} placeholder="Retries" />
-                    <input type="number" min={0} max={5000} value={retryDelayMs} onChange={(e) => setRetryDelayMs(Number(e.target.value))} className={inputClass} placeholder="Retry delay (ms)" />
-                    <input value={signatureHeader} onChange={(e) => setSignatureHeader(e.target.value)} className={inputClass} placeholder="Signature header name" />
-                    <input value={signatureSecret} onChange={(e) => setSignatureSecret(e.target.value)} className={inputClass} placeholder="Signature secret (optional)" />
+                    <label className="text-sm">
+                        <SectionLabel>Retries</SectionLabel>
+                        <input type="number" min={0} max={5} value={retryCount} onChange={(e) => setRetryCount(Number(e.target.value))} className={inputClass} placeholder="Retries" />
+                    </label>
+                    <label className="text-sm">
+                        <SectionLabel>Retry Delay (ms)</SectionLabel>
+                        <input type="number" min={0} max={5000} value={retryDelayMs} onChange={(e) => setRetryDelayMs(Number(e.target.value))} className={inputClass} placeholder="Retry delay (ms)" />
+                    </label>
+                    <label className="text-sm">
+                        <SectionLabel>Signature Header</SectionLabel>
+                        <input value={signatureHeader} onChange={(e) => setSignatureHeader(e.target.value)} className={inputClass} placeholder="Signature header name" />
+                    </label>
+                    <label className="text-sm">
+                        <SectionLabel>Signature Secret</SectionLabel>
+                        <input value={signatureSecret} onChange={(e) => setSignatureSecret(e.target.value)} className={inputClass} placeholder="Signature secret (optional)" />
+                    </label>
                 </div>
 
                 <Button size="sm" className={compactButtonClass} onClick={onSend} disabled={loading}>
@@ -991,7 +1122,10 @@ export function OpenApiSwaggerEditorTool() {
     return (
         <ToolCard>
             <div className="space-y-4">
-                <textarea value={source} onChange={(e) => setSource(e.target.value)} className={`${textAreaClass} h-48`} />
+                <label className="text-sm">
+                    <SectionLabel>OpenAPI JSON Source</SectionLabel>
+                    <textarea value={source} onChange={(e) => setSource(e.target.value)} className={`${textAreaClass} h-48`} />
+                </label>
                 <Button size="sm" className={compactButtonClass} onClick={onAnalyze}>
                     <Search className="h-3.5 w-3.5" />
                     Analyze OpenAPI
@@ -1001,17 +1135,23 @@ export function OpenApiSwaggerEditorTool() {
                 {endpoints.length > 0 ? (
                     <div className="space-y-2">
                         <div className="grid gap-2 md:grid-cols-[minmax(0,1fr)_260px]">
-                            <input value={filterText} onChange={(e) => setFilterText(e.target.value)} className={inputClass} placeholder="Filter endpoints by method/path/tag..." />
-                            <select value={selectedEndpoint} onChange={(e) => onSelectEndpoint(e.target.value)} className={inputClass}>
-                                {endpoints.map((item) => {
-                                    const value = `${item.method} ${item.path}`;
-                                    return (
-                                        <option key={value} value={value}>
-                                            {value}
-                                        </option>
-                                    );
-                                })}
-                            </select>
+                            <label className="text-sm">
+                                <SectionLabel>Endpoint Filter</SectionLabel>
+                                <input value={filterText} onChange={(e) => setFilterText(e.target.value)} className={inputClass} placeholder="Filter endpoints by method/path/tag..." />
+                            </label>
+                            <label className="text-sm">
+                                <SectionLabel>cURL Target Endpoint</SectionLabel>
+                                <select value={selectedEndpoint} onChange={(e) => onSelectEndpoint(e.target.value)} className={inputClass}>
+                                    {endpoints.map((item) => {
+                                        const value = `${item.method} ${item.path}`;
+                                        return (
+                                            <option key={value} value={value}>
+                                                {value}
+                                            </option>
+                                        );
+                                    })}
+                                </select>
+                            </label>
                         </div>
                         <SectionLabel>Endpoints</SectionLabel>
                         <div className="max-h-56 overflow-auto rounded-xl border border-slate-200 dark:border-slate-700">
@@ -1127,12 +1267,24 @@ export function RobotsTxtGeneratorTool() {
         <ToolCard>
             <div className="space-y-4">
                 <div className="grid gap-3 md:grid-cols-2">
-                    <textarea value={allow} onChange={(e) => setAllow(e.target.value)} className={`${textAreaClass} h-24`} placeholder="Allow paths, one per line" />
-                    <textarea value={disallow} onChange={(e) => setDisallow(e.target.value)} className={`${textAreaClass} h-24`} placeholder="Disallow paths, one per line" />
+                    <label className="text-sm">
+                        <SectionLabel>Allow Paths</SectionLabel>
+                        <textarea value={allow} onChange={(e) => setAllow(e.target.value)} className={`${textAreaClass} h-24`} placeholder="Allow paths, one per line" />
+                    </label>
+                    <label className="text-sm">
+                        <SectionLabel>Disallow Paths</SectionLabel>
+                        <textarea value={disallow} onChange={(e) => setDisallow(e.target.value)} className={`${textAreaClass} h-24`} placeholder="Disallow paths, one per line" />
+                    </label>
                 </div>
                 <div className="grid gap-3 md:grid-cols-2">
-                    <input value={crawlDelay} onChange={(e) => setCrawlDelay(e.target.value)} className={inputClass} placeholder="Crawl delay" />
-                    <input value={sitemap} onChange={(e) => setSitemap(e.target.value)} className={inputClass} placeholder="Sitemap URL" />
+                    <label className="text-sm">
+                        <SectionLabel>Crawl Delay</SectionLabel>
+                        <input value={crawlDelay} onChange={(e) => setCrawlDelay(e.target.value)} className={inputClass} placeholder="Crawl delay" />
+                    </label>
+                    <label className="text-sm">
+                        <SectionLabel>Sitemap URL</SectionLabel>
+                        <input value={sitemap} onChange={(e) => setSitemap(e.target.value)} className={inputClass} placeholder="Sitemap URL" />
+                    </label>
                 </div>
                 <pre className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs dark:border-slate-700 dark:bg-slate-900">{output}</pre>
                 <CopyButton value={output} className={compactButtonClass} />

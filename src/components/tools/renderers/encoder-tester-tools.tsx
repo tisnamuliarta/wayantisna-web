@@ -807,53 +807,71 @@ export function JwtTool() {
                             className="h-32 w-full rounded-xl border border-slate-300 bg-white p-3 text-sm outline-none ring-cyan-600 transition focus:ring-2 dark:border-slate-700 dark:bg-slate-950"
                         />
                         <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_220px]">
-                            <input
-                                value={requiredClaimsText}
-                                onChange={(event) => setRequiredClaimsText(event.target.value)}
-                                placeholder="Required claims, comma separated (e.g. sub,exp,iat)"
-                                className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none ring-cyan-600 transition focus:ring-2 dark:border-slate-700 dark:bg-slate-950"
-                            />
+                            <label className="text-sm">
+                                <SectionLabel>Required Claims</SectionLabel>
+                                <input
+                                    value={requiredClaimsText}
+                                    onChange={(event) => setRequiredClaimsText(event.target.value)}
+                                    placeholder="Required claims, comma separated (e.g. sub,exp,iat)"
+                                    className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none ring-cyan-600 transition focus:ring-2 dark:border-slate-700 dark:bg-slate-950"
+                                />
+                            </label>
                             <div className="grid gap-2">
-                                <input
-                                    value={verifySecret}
-                                    onChange={(event) => setVerifySecret(event.target.value)}
-                                    placeholder="Verification secret"
-                                    className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none ring-cyan-600 transition focus:ring-2 dark:border-slate-700 dark:bg-slate-950"
-                                />
-                                <input
-                                    type="number"
-                                    min={0}
-                                    max={600}
-                                    value={clockSkewSeconds}
-                                    onChange={(event) => setClockSkewSeconds(Number(event.target.value))}
-                                    placeholder="Clock skew seconds"
-                                    className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none ring-cyan-600 transition focus:ring-2 dark:border-slate-700 dark:bg-slate-950"
-                                />
+                                <label className="text-sm">
+                                    <SectionLabel>Verification Secret</SectionLabel>
+                                    <input
+                                        value={verifySecret}
+                                        onChange={(event) => setVerifySecret(event.target.value)}
+                                        placeholder="Verification secret"
+                                        className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none ring-cyan-600 transition focus:ring-2 dark:border-slate-700 dark:bg-slate-950"
+                                    />
+                                </label>
+                                <label className="text-sm">
+                                    <SectionLabel>Clock Skew (Seconds)</SectionLabel>
+                                    <input
+                                        type="number"
+                                        min={0}
+                                        max={600}
+                                        value={clockSkewSeconds}
+                                        onChange={(event) => setClockSkewSeconds(Number(event.target.value))}
+                                        placeholder="Clock skew seconds"
+                                        className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none ring-cyan-600 transition focus:ring-2 dark:border-slate-700 dark:bg-slate-950"
+                                    />
+                                </label>
                             </div>
                         </div>
                     </div>
                 ) : (
                     <div className="space-y-3">
                         <div className="grid gap-3 md:grid-cols-2">
-                            <textarea
-                                value={headerInput}
-                                onChange={(e) => setHeaderInput(e.target.value)}
-                                placeholder="JWT Header JSON"
-                                className="h-36 w-full rounded-xl border border-slate-300 bg-white p-3 text-sm outline-none ring-cyan-600 transition focus:ring-2 dark:border-slate-700 dark:bg-slate-950"
-                            />
-                            <textarea
-                                value={payloadInput}
-                                onChange={(e) => setPayloadInput(e.target.value)}
-                                placeholder="JWT Payload JSON"
-                                className="h-36 w-full rounded-xl border border-slate-300 bg-white p-3 text-sm outline-none ring-cyan-600 transition focus:ring-2 dark:border-slate-700 dark:bg-slate-950"
-                            />
+                            <label className="text-sm">
+                                <SectionLabel>JWT Header JSON</SectionLabel>
+                                <textarea
+                                    value={headerInput}
+                                    onChange={(e) => setHeaderInput(e.target.value)}
+                                    placeholder="JWT Header JSON"
+                                    className="h-36 w-full rounded-xl border border-slate-300 bg-white p-3 text-sm outline-none ring-cyan-600 transition focus:ring-2 dark:border-slate-700 dark:bg-slate-950"
+                                />
+                            </label>
+                            <label className="text-sm">
+                                <SectionLabel>JWT Payload JSON</SectionLabel>
+                                <textarea
+                                    value={payloadInput}
+                                    onChange={(e) => setPayloadInput(e.target.value)}
+                                    placeholder="JWT Payload JSON"
+                                    className="h-36 w-full rounded-xl border border-slate-300 bg-white p-3 text-sm outline-none ring-cyan-600 transition focus:ring-2 dark:border-slate-700 dark:bg-slate-950"
+                                />
+                            </label>
                         </div>
-                        <input
-                            value={secret}
-                            onChange={(e) => setSecret(e.target.value)}
-                            placeholder="Signing secret (HS256)"
-                            className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none ring-cyan-600 transition focus:ring-2 dark:border-slate-700 dark:bg-slate-950"
-                        />
+                        <label className="text-sm">
+                            <SectionLabel>Signing Secret (HS256)</SectionLabel>
+                            <input
+                                value={secret}
+                                onChange={(e) => setSecret(e.target.value)}
+                                placeholder="Signing secret (HS256)"
+                                className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none ring-cyan-600 transition focus:ring-2 dark:border-slate-700 dark:bg-slate-950"
+                            />
+                        </label>
                         <OutputBox title="Generated Token" value={generatedToken} placeholder="Generated token appears here." />
                     </div>
                 )}
@@ -1002,20 +1020,35 @@ export function RegexTesterTool() {
 
                 <ReportPanel report={summary} />
 
-                <div className="grid gap-3 md:grid-cols-[1fr_120px]">
-                    <input value={pattern} onChange={(e) => setPattern(e.target.value)} className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900" placeholder="Pattern (without / /)" />
-                    <input value={flags} onChange={(e) => setFlags(e.target.value)} className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900" placeholder="Flags" />
+                <div className="grid gap-3 md:grid-cols-[1fr_140px]">
+                    <label className="text-sm">
+                        <SectionLabel>Regex Pattern</SectionLabel>
+                        <input value={pattern} onChange={(e) => setPattern(e.target.value)} className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900" placeholder="Pattern (without / /)" />
+                    </label>
+                    <label className="text-sm">
+                        <SectionLabel>Flags</SectionLabel>
+                        <input value={flags} onChange={(e) => setFlags(e.target.value)} className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900" placeholder="Flags" />
+                    </label>
                 </div>
 
-                <input value={replacement} onChange={(e) => setReplacement(e.target.value)} className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900" placeholder="Replacement pattern (e.g. [$1])" />
+                <label className="text-sm">
+                    <SectionLabel>Replacement Pattern</SectionLabel>
+                    <input value={replacement} onChange={(e) => setReplacement(e.target.value)} className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900" placeholder="Replacement pattern (e.g. [$1])" />
+                </label>
 
-                <textarea value={text} onChange={(e) => setText(e.target.value)} className="h-44 w-full rounded-lg border border-slate-300 bg-white p-3 text-sm dark:border-slate-700 dark:bg-slate-900" />
-                <textarea
-                    value={testCases}
-                    onChange={(e) => setTestCases(e.target.value)}
-                    className="h-24 w-full rounded-lg border border-slate-300 bg-white p-3 text-xs dark:border-slate-700 dark:bg-slate-900"
-                    placeholder="One test per line: input => true|false"
-                />
+                <label className="text-sm">
+                    <SectionLabel>Input Text</SectionLabel>
+                    <textarea value={text} onChange={(e) => setText(e.target.value)} className="h-44 w-full rounded-lg border border-slate-300 bg-white p-3 text-sm dark:border-slate-700 dark:bg-slate-900" />
+                </label>
+                <label className="text-sm">
+                    <SectionLabel>Test Cases</SectionLabel>
+                    <textarea
+                        value={testCases}
+                        onChange={(e) => setTestCases(e.target.value)}
+                        className="h-24 w-full rounded-lg border border-slate-300 bg-white p-3 text-xs dark:border-slate-700 dark:bg-slate-900"
+                        placeholder="One test per line: input => true|false"
+                    />
+                </label>
 
                 <div className="grid gap-4 xl:grid-cols-2">
                     <div className="space-y-2">
@@ -1270,13 +1303,22 @@ export function CronTesterTool() {
                     </Button>
                 </div>
 
-                <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_120px_120px]">
-                    <input value={expression} onChange={(e) => setExpression(e.target.value)} className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900" placeholder="* * * * *" />
-                    <input type="number" min={1} max={20} value={previewCount} onChange={(e) => setPreviewCount(Number(e.target.value))} className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900" />
-                    <select value={timezoneView} onChange={(e) => setTimezoneView(e.target.value as 'local' | 'utc')} className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900">
-                        <option value="local">Local TZ</option>
-                        <option value="utc">UTC</option>
-                    </select>
+                <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_150px_140px]">
+                    <label className="text-sm">
+                        <SectionLabel>Cron Expression</SectionLabel>
+                        <input value={expression} onChange={(e) => setExpression(e.target.value)} className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900" placeholder="* * * * *" />
+                    </label>
+                    <label className="text-sm">
+                        <SectionLabel>Preview Count</SectionLabel>
+                        <input type="number" min={1} max={20} value={previewCount} onChange={(e) => setPreviewCount(Number(e.target.value))} className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900" />
+                    </label>
+                    <label className="text-sm">
+                        <SectionLabel>Timezone</SectionLabel>
+                        <select value={timezoneView} onChange={(e) => setTimezoneView(e.target.value as 'local' | 'utc')} className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900">
+                            <option value="local">Local TZ</option>
+                            <option value="utc">UTC</option>
+                        </select>
+                    </label>
                 </div>
 
                 <ReportPanel report={analysis.report} />
