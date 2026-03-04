@@ -77,37 +77,37 @@ export const toolsCatalog: ToolDefinition[] = [
     {
         slug: 'regex-tester',
         title: 'Regex Tester',
-        description: 'Test regular expressions with live matching and error handling.',
+        description: 'Debug regex with match diagnostics, capture groups, and replacement preview.',
         category: 'Testers',
     },
     {
         slug: 'cron-expression-tester',
         title: 'Cron Expression Tester',
-        description: 'Validate cron schedules and inspect field-by-field interpretation.',
+        description: 'Validate cron fields and preview upcoming run schedules in local timezone.',
         category: 'Testers',
     },
     {
         slug: 'uuid-random-id-generator',
         title: 'UUID / Random ID Generator',
-        description: 'Generate UUIDs and custom random IDs for development use.',
+        description: 'Generate bulk UUID/custom IDs with prefix rules, charset controls, and collision checks.',
         category: 'Generators',
     },
     {
         slug: 'password-generator',
         title: 'Password Generator',
-        description: 'Create strong passwords with configurable character rules.',
+        description: 'Create batch passwords with entropy scoring, ambiguity filters, and policy options.',
         category: 'Generators',
     },
     {
         slug: 'qr-code-generator',
         title: 'QR Code Generator',
-        description: 'Generate QR codes from text or URLs instantly.',
+        description: 'Build customizable QR codes with ECC, colors, formats, and ready-to-download output.',
         category: 'Generators',
     },
     {
         slug: 'lorem-ipsum-generator',
         title: 'Lorem Ipsum Generator',
-        description: 'Generate placeholder paragraphs and words for UI content.',
+        description: 'Generate words, sentences, or paragraphs with HTML output and content metrics.',
         category: 'Generators',
     },
     {
