@@ -367,31 +367,400 @@ export function ColorPickerTool() {
 }
 
 export function CssGradientTool() {
-    const [start, setStart] = useState('#06B6D4');
-    const [end, setEnd] = useState('#8B5CF6');
+    type GradientStop = { id: number; color: string; position: number; alpha: number };
+    type GradientType = 'linear' | 'radial' | 'conic';
+    type RadialShape = 'ellipse' | 'circle';
+    type RadialSize = 'closest-side' | 'closest-corner' | 'farthest-side' | 'farthest-corner';
+
+    const [gradientType, setGradientType] = useState<GradientType>('linear');
+    const [repeating, setRepeating] = useState(false);
     const [angle, setAngle] = useState(135);
-    const css = `background: linear-gradient(${angle}deg, ${start}, ${end});`;
+    const [positionX, setPositionX] = useState(50);
+    const [positionY, setPositionY] = useState(50);
+    const [radialShape, setRadialShape] = useState<RadialShape>('ellipse');
+    const [radialSize, setRadialSize] = useState<RadialSize>('farthest-corner');
+    const [stops, setStops] = useState<GradientStop[]>([
+        { id: 1, color: '#06B6D4', position: 0, alpha: 100 },
+        { id: 2, color: '#3B82F6', position: 45, alpha: 100 },
+        { id: 3, color: '#8B5CF6', position: 100, alpha: 100 },
+    ]);
+
+    const presets: Array<{
+        label: string;
+        type: GradientType;
+        repeating: boolean;
+        angle: number;
+        positionX: number;
+        positionY: number;
+        radialShape: RadialShape;
+        radialSize: RadialSize;
+        stops: GradientStop[];
+    }> = [
+        {
+            label: 'Ocean Depth',
+            type: 'linear',
+            repeating: false,
+            angle: 135,
+            positionX: 50,
+            positionY: 50,
+            radialShape: 'ellipse',
+            radialSize: 'farthest-corner',
+            stops: [
+                { id: 11, color: '#0EA5E9', position: 0, alpha: 100 },
+                { id: 12, color: '#2563EB', position: 55, alpha: 100 },
+                { id: 13, color: '#7C3AED', position: 100, alpha: 100 },
+            ],
+        },
+        {
+            label: 'Hero Warm Glow',
+            type: 'radial',
+            repeating: false,
+            angle: 160,
+            positionX: 35,
+            positionY: 30,
+            radialShape: 'circle',
+            radialSize: 'farthest-corner',
+            stops: [
+                { id: 21, color: '#FDBA74', position: 0, alpha: 95 },
+                { id: 22, color: '#FB7185', position: 50, alpha: 90 },
+                { id: 23, color: '#7C3AED', position: 100, alpha: 92 },
+            ],
+        },
+        {
+            label: 'Conic Brand Ring',
+            type: 'conic',
+            repeating: false,
+            angle: 90,
+            positionX: 50,
+            positionY: 50,
+            radialShape: 'ellipse',
+            radialSize: 'farthest-corner',
+            stops: [
+                { id: 31, color: '#06B6D4', position: 0, alpha: 100 },
+                { id: 32, color: '#10B981', position: 33, alpha: 100 },
+                { id: 33, color: '#F59E0B', position: 66, alpha: 100 },
+                { id: 34, color: '#8B5CF6', position: 100, alpha: 100 },
+            ],
+        },
+        {
+            label: 'Mesh Repeat',
+            type: 'linear',
+            repeating: true,
+            angle: 45,
+            positionX: 50,
+            positionY: 50,
+            radialShape: 'ellipse',
+            radialSize: 'farthest-corner',
+            stops: [
+                { id: 41, color: '#111827', position: 0, alpha: 100 },
+                { id: 42, color: '#1D4ED8', position: 20, alpha: 80 },
+                { id: 43, color: '#9333EA', position: 40, alpha: 70 },
+                { id: 44, color: '#111827', position: 60, alpha: 100 },
+                { id: 45, color: '#06B6D4', position: 80, alpha: 65 },
+                { id: 46, color: '#111827', position: 100, alpha: 100 },
+            ],
+        },
+    ];
+
+    const nextStopId = useMemo(() => Math.max(0, ...stops.map((stop) => stop.id)) + 1, [stops]);
+
+    const normalizedStops = useMemo(
+        () =>
+            [...stops]
+                .sort((a, b) => a.position - b.position)
+                .map((stop) => {
+                    const parsed = parseHexToRgba(stop.color);
+                    if (!parsed) return `#000000 ${clamp(stop.position, 0, 100)}%`;
+                    const alpha = Number((clamp(stop.alpha, 0, 100) / 100).toFixed(2));
+                    return `rgba(${parsed.r}, ${parsed.g}, ${parsed.b}, ${alpha}) ${clamp(stop.position, 0, 100)}%`;
+                }),
+        [stops],
+    );
+
+    const gradientFunctionName = `${repeating ? 'repeating-' : ''}${gradientType}-gradient`;
+    const gradientValue = useMemo(() => {
+        if (gradientType === 'linear') {
+            return `${gradientFunctionName}(${clamp(angle, 0, 360)}deg, ${normalizedStops.join(', ')})`;
+        }
+        if (gradientType === 'radial') {
+            return `${gradientFunctionName}(${radialShape} ${radialSize} at ${clamp(positionX, 0, 100)}% ${clamp(positionY, 0, 100)}%, ${normalizedStops.join(', ')})`;
+        }
+        return `${gradientFunctionName}(from ${clamp(angle, 0, 360)}deg at ${clamp(positionX, 0, 100)}% ${clamp(positionY, 0, 100)}%, ${normalizedStops.join(', ')})`;
+    }, [angle, gradientFunctionName, gradientType, normalizedStops, positionX, positionY, radialShape, radialSize]);
+
+    const cssBackground = `background: ${gradientValue};`;
+    const cssBackgroundImage = `background-image: ${gradientValue};`;
+    const tailwindArbitrary = `bg-[${gradientValue.replaceAll(' ', '_')}]`;
+    const figmaHint = `${gradientType.toUpperCase()} / ${stops.length} stops / ${repeating ? 'repeating' : 'single-pass'}`;
+
+    const updateStop = (id: number, patch: Partial<GradientStop>) => {
+        setStops((prev) =>
+            prev.map((stop) =>
+                stop.id === id
+                    ? {
+                          ...stop,
+                          ...patch,
+                          position: patch.position === undefined ? stop.position : clamp(patch.position, 0, 100),
+                          alpha: patch.alpha === undefined ? stop.alpha : clamp(patch.alpha, 0, 100),
+                      }
+                    : stop,
+            ),
+        );
+    };
+
+    const addStop = () => {
+        const fallbackColor = stops[stops.length - 1]?.color ?? '#8B5CF6';
+        const position = stops.length === 0 ? 0 : Math.min(100, Math.round((stops.length / (stops.length + 1)) * 100));
+        setStops((prev) => [...prev, { id: nextStopId, color: fallbackColor, position, alpha: 100 }]);
+    };
+
+    const removeStop = (id: number) => {
+        setStops((prev) => {
+            if (prev.length <= 2) return prev;
+            return prev.filter((stop) => stop.id !== id);
+        });
+    };
+
+    const reverseStops = () => {
+        setStops((prev) =>
+            [...prev]
+                .map((stop) => ({ ...stop, position: 100 - stop.position }))
+                .sort((a, b) => a.position - b.position),
+        );
+    };
+
+    const distributeStopsEvenly = () => {
+        setStops((prev) =>
+            [...prev]
+                .sort((a, b) => a.position - b.position)
+                .map((stop, index, list) => {
+                    if (list.length === 1) return { ...stop, position: 50 };
+                    return { ...stop, position: Math.round((index / (list.length - 1)) * 100) };
+                }),
+        );
+    };
+
+    const applyPreset = (label: string) => {
+        const preset = presets.find((item) => item.label === label);
+        if (!preset) return;
+        setGradientType(preset.type);
+        setRepeating(preset.repeating);
+        setAngle(preset.angle);
+        setPositionX(preset.positionX);
+        setPositionY(preset.positionY);
+        setRadialShape(preset.radialShape);
+        setRadialSize(preset.radialSize);
+        setStops(preset.stops);
+    };
 
     return (
         <ToolCard>
-            <div className="grid gap-3 md:grid-cols-3">
-                <label className="text-sm">
-                    <SectionLabel>Start</SectionLabel>
-                    <input type="color" value={start} onChange={(e) => setStart(e.target.value)} className="h-10 w-full rounded-lg border border-slate-300 bg-transparent" />
-                </label>
-                <label className="text-sm">
-                    <SectionLabel>End</SectionLabel>
-                    <input type="color" value={end} onChange={(e) => setEnd(e.target.value)} className="h-10 w-full rounded-lg border border-slate-300 bg-transparent" />
-                </label>
-                <label className="text-sm">
-                    <SectionLabel>Angle</SectionLabel>
-                    <input type="number" value={angle} onChange={(e) => setAngle(Number(e.target.value))} className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 dark:border-slate-700 dark:bg-slate-900" />
-                </label>
-            </div>
-            <div className="mt-4 h-44 rounded-xl border border-slate-200" style={{ background: `linear-gradient(${angle}deg, ${start}, ${end})` }} />
-            <div className="mt-4 flex flex-wrap items-center gap-2">
-                <code className="rounded bg-slate-100 px-2 py-1 text-sm dark:bg-slate-900">{css}</code>
-                <CopyButton value={css} />
+            <div className="grid gap-6 2xl:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
+                <div className="min-w-0 space-y-5">
+                    <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+                        <label className="text-sm">
+                            <SectionLabel>Gradient Type</SectionLabel>
+                            <select
+                                value={gradientType}
+                                onChange={(e) => setGradientType(e.target.value as GradientType)}
+                                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 dark:border-slate-700 dark:bg-slate-900"
+                            >
+                                <option value="linear">Linear</option>
+                                <option value="radial">Radial</option>
+                                <option value="conic">Conic</option>
+                            </select>
+                        </label>
+
+                        <label className="text-sm">
+                            <SectionLabel>Angle / From</SectionLabel>
+                            <input
+                                type="number"
+                                min={0}
+                                max={360}
+                                value={angle}
+                                onChange={(e) => setAngle(clamp(Number(e.target.value), 0, 360))}
+                                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 dark:border-slate-700 dark:bg-slate-900"
+                            />
+                        </label>
+
+                        <label className="text-sm">
+                            <SectionLabel>Origin X ({positionX}%)</SectionLabel>
+                            <input
+                                type="range"
+                                min={0}
+                                max={100}
+                                value={positionX}
+                                onChange={(e) => setPositionX(clamp(Number(e.target.value), 0, 100))}
+                                className="w-full accent-cyan-700"
+                            />
+                        </label>
+
+                        <label className="text-sm">
+                            <SectionLabel>Origin Y ({positionY}%)</SectionLabel>
+                            <input
+                                type="range"
+                                min={0}
+                                max={100}
+                                value={positionY}
+                                onChange={(e) => setPositionY(clamp(Number(e.target.value), 0, 100))}
+                                className="w-full accent-cyan-700"
+                            />
+                        </label>
+                    </div>
+
+                    {gradientType === 'radial' ? (
+                        <div className="grid gap-3 md:grid-cols-2">
+                            <label className="text-sm">
+                                <SectionLabel>Radial Shape</SectionLabel>
+                                <select
+                                    value={radialShape}
+                                    onChange={(e) => setRadialShape(e.target.value as RadialShape)}
+                                    className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 dark:border-slate-700 dark:bg-slate-900"
+                                >
+                                    <option value="ellipse">ellipse</option>
+                                    <option value="circle">circle</option>
+                                </select>
+                            </label>
+                            <label className="text-sm">
+                                <SectionLabel>Radial Size</SectionLabel>
+                                <select
+                                    value={radialSize}
+                                    onChange={(e) => setRadialSize(e.target.value as RadialSize)}
+                                    className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 dark:border-slate-700 dark:bg-slate-900"
+                                >
+                                    <option value="closest-side">closest-side</option>
+                                    <option value="closest-corner">closest-corner</option>
+                                    <option value="farthest-side">farthest-side</option>
+                                    <option value="farthest-corner">farthest-corner</option>
+                                </select>
+                            </label>
+                        </div>
+                    ) : null}
+
+                    <div className="flex flex-wrap gap-2">
+                        <Button
+                            type="button"
+                            size="sm"
+                            variant={repeating ? 'default' : 'outline'}
+                            onClick={() => setRepeating((prev) => !prev)}
+                        >
+                            {repeating ? 'Repeating: On' : 'Repeating: Off'}
+                        </Button>
+                        <Button type="button" size="sm" variant="outline" onClick={addStop}>
+                            Add Color Stop
+                        </Button>
+                        <Button type="button" size="sm" variant="outline" onClick={distributeStopsEvenly}>
+                            Distribute Stops
+                        </Button>
+                        <Button type="button" size="sm" variant="outline" onClick={reverseStops}>
+                            Reverse
+                        </Button>
+                    </div>
+
+                    <div className="space-y-3 rounded-xl border border-slate-200 p-3 dark:border-slate-700">
+                        <SectionLabel>Color Stops</SectionLabel>
+                        {stops.map((stop) => (
+                            <div
+                                key={stop.id}
+                                className="grid items-end gap-2 rounded-lg border border-slate-200 p-2 dark:border-slate-700 md:grid-cols-[110px_minmax(0,1fr)_minmax(0,1fr)_auto]"
+                            >
+                                <div className="space-y-1">
+                                    <SectionLabel>Color</SectionLabel>
+                                    <input
+                                        type="color"
+                                        value={stop.color}
+                                        onChange={(e) => updateStop(stop.id, { color: e.target.value })}
+                                        className="h-9 w-full rounded border border-slate-300 bg-transparent"
+                                    />
+                                </div>
+                                <label className="space-y-1">
+                                    <SectionLabel>Position ({stop.position}%)</SectionLabel>
+                                    <input
+                                        type="range"
+                                        min={0}
+                                        max={100}
+                                        value={stop.position}
+                                        onChange={(e) => updateStop(stop.id, { position: Number(e.target.value) })}
+                                        className="w-full accent-cyan-700"
+                                    />
+                                </label>
+                                <label className="space-y-1">
+                                    <SectionLabel>Opacity ({stop.alpha}%)</SectionLabel>
+                                    <input
+                                        type="range"
+                                        min={0}
+                                        max={100}
+                                        value={stop.alpha}
+                                        onChange={(e) => updateStop(stop.id, { alpha: Number(e.target.value) })}
+                                        className="w-full accent-cyan-700"
+                                    />
+                                </label>
+                                <div className="flex items-end">
+                                    <Button type="button" size="sm" variant="outline" onClick={() => removeStop(stop.id)} disabled={stops.length <= 2}>
+                                        Remove
+                                    </Button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    <div className="space-y-2 rounded-xl border border-slate-200 p-3 dark:border-slate-700">
+                        <SectionLabel>Presets</SectionLabel>
+                        <div className="flex flex-wrap gap-2">
+                            {presets.map((preset) => (
+                                <Button key={preset.label} type="button" size="sm" variant="outline" onClick={() => applyPreset(preset.label)}>
+                                    {preset.label}
+                                </Button>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+
+                <div className="min-w-0 space-y-4">
+                    <SectionLabel>Live Preview</SectionLabel>
+                    <div
+                        className="h-64 rounded-xl border border-slate-200 p-3 dark:border-slate-700"
+                        style={{
+                            backgroundImage:
+                                'linear-gradient(45deg, #e2e8f0 25%, transparent 25%), linear-gradient(-45deg, #e2e8f0 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #e2e8f0 75%), linear-gradient(-45deg, transparent 75%, #e2e8f0 75%)',
+                            backgroundSize: '16px 16px',
+                            backgroundPosition: '0 0, 0 8px, 8px -8px, -8px 0px',
+                        }}
+                    >
+                        <div className="h-full rounded-lg border border-white/30" style={{ background: gradientValue }} />
+                    </div>
+
+                    <div className="space-y-2 rounded-xl border border-slate-200 p-3 text-sm dark:border-slate-700">
+                        <div className="space-y-1">
+                            <SectionLabel>CSS Background</SectionLabel>
+                            <div className="flex min-w-0 items-start gap-2">
+                                <pre className="max-h-28 flex-1 overflow-auto whitespace-pre-wrap break-all rounded bg-slate-100 px-2 py-1 text-xs dark:bg-slate-900">
+                                    {cssBackground}
+                                </pre>
+                                <CopyButton value={cssBackground} />
+                            </div>
+                        </div>
+                        <div className="space-y-1">
+                            <SectionLabel>CSS Background Image</SectionLabel>
+                            <div className="flex min-w-0 items-start gap-2">
+                                <pre className="max-h-28 flex-1 overflow-auto whitespace-pre-wrap break-all rounded bg-slate-100 px-2 py-1 text-xs dark:bg-slate-900">
+                                    {cssBackgroundImage}
+                                </pre>
+                                <CopyButton value={cssBackgroundImage} />
+                            </div>
+                        </div>
+                        <div className="space-y-1">
+                            <SectionLabel>Tailwind Arbitrary Value</SectionLabel>
+                            <div className="flex min-w-0 items-start gap-2">
+                                <pre className="max-h-28 flex-1 overflow-auto whitespace-pre-wrap break-all rounded bg-slate-100 px-2 py-1 text-xs dark:bg-slate-900">
+                                    {tailwindArbitrary}
+                                </pre>
+                                <CopyButton value={tailwindArbitrary} />
+                            </div>
+                        </div>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">Preset summary: {figmaHint}</p>
+                    </div>
+                </div>
             </div>
         </ToolCard>
     );

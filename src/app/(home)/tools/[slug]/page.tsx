@@ -11,7 +11,7 @@ interface ToolDetailPageProps {
     }>;
 }
 
-const wideToolSlugs = new Set(['code-diff-checker', 'json-diff']);
+const wideToolSlugs = new Set(['code-diff-checker', 'json-diff', 'css-gradient-generator']);
 
 export async function generateStaticParams() {
     return toolsCatalog.map((tool) => ({ slug: tool.slug }));
