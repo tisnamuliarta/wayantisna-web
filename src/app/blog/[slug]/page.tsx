@@ -126,7 +126,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                         <InlineTOC
                             items={tocItems}
                             defaultOpen
-                            className="border-slate-200 bg-white text-slate-700 dark:border-white/15 dark:bg-white/[0.04] dark:text-slate-200"
+                            className="max-h-[52vh] overflow-y-auto border-slate-200 bg-white pr-1 text-slate-700 dark:border-white/15 dark:bg-white/[0.04] dark:text-slate-200"
                         />
                         <AdBanner className="rounded-2xl border border-slate-200 bg-white p-3 dark:border-white/15 dark:bg-white/[0.04]" />
                         <div className="rounded-2xl border border-slate-200 bg-white p-4 dark:border-white/15 dark:bg-white/[0.04]">
