@@ -53,7 +53,7 @@ function contrastRatio(hexA: string, hexB: string) {
     return (high + 0.05) / (low + 0.05);
 }
 
-function parseCsv(text: string) {
+function parseCsv(text: string, delimiter = ',') {
     const rows: string[][] = [];
     let row: string[] = [];
     let field = '';
@@ -70,7 +70,7 @@ function parseCsv(text: string) {
             }
             continue;
         }
-        if (char === ',' && !inQuotes) {
+        if (char === delimiter && !inQuotes) {
             row.push(field);
             field = '';
             continue;
@@ -90,15 +90,16 @@ function parseCsv(text: string) {
     return rows;
 }
 
-function rowsToCsv(rows: string[][]) {
+function rowsToCsv(rows: string[][], delimiter = ',') {
     return rows
         .map((row) =>
             row
                 .map((field) => {
-                    if (/[",\n]/.test(field)) return `"${field.replaceAll('"', '""')}"`;
+                    const escaped = delimiter.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                    if (new RegExp(`["\\n${escaped}]`).test(field)) return `"${field.replaceAll('"', '""')}"`;
                     return field;
                 })
-                .join(','),
+                .join(delimiter),
         )
         .join('\n');
 }
@@ -272,24 +273,90 @@ function md5(input: string) {
     return (wordToHex(a) + wordToHex(b) + wordToHex(c) + wordToHex(d)).toLowerCase();
 }
 
+function bytesToHex(buffer: ArrayBuffer) {
+    return Array.from(new Uint8Array(buffer))
+        .map((b) => b.toString(16).padStart(2, '0'))
+        .join('');
+}
+
+async function digestText(algorithm: 'SHA-1' | 'SHA-256' | 'SHA-512', value: string) {
+    const digest = await crypto.subtle.digest(algorithm, new TextEncoder().encode(value));
+    return bytesToHex(digest);
+}
+
+function entropyBits(password: string) {
+    let pool = 0;
+    if (/[a-z]/.test(password)) pool += 26;
+    if (/[A-Z]/.test(password)) pool += 26;
+    if (/\d/.test(password)) pool += 10;
+    if (/[^A-Za-z0-9]/.test(password)) pool += 33;
+    if (pool === 0 || password.length === 0) return 0;
+    return password.length * Math.log2(pool);
+}
+
+function humanDuration(seconds: number) {
+    if (!Number.isFinite(seconds) || seconds <= 0) return 'instant';
+    const years = seconds / (365 * 24 * 3600);
+    if (years > 1000) return '> 1000 years';
+    if (years >= 1) return `${years.toFixed(1)} years`;
+    const days = seconds / (24 * 3600);
+    if (days >= 1) return `${days.toFixed(1)} days`;
+    const hours = seconds / 3600;
+    if (hours >= 1) return `${hours.toFixed(1)} hours`;
+    const mins = seconds / 60;
+    if (mins >= 1) return `${mins.toFixed(1)} minutes`;
+    return `${seconds.toFixed(1)} seconds`;
+}
+
 export function JsonSchemaValidatorTool() {
     const [schemaText, setSchemaText] = useState('{\n  "type": "object",\n  "required": ["name"],\n  "properties": {\n    "name": { "type": "string", "minLength": 2 },\n    "age": { "type": "integer", "minimum": 18 }\n  }\n}');
     const [dataText, setDataText] = useState('{\n  "name": "Wayan",\n  "age": 28\n}');
-    const [result, setResult] = useState<ValidationResult | null>(null);
+    const [mode, setMode] = useState<'single' | 'batch-array'>('single');
+    const [maxErrors, setMaxErrors] = useState(50);
+    const [result, setResult] = useState<{ valid: boolean; errors: string[]; checked: number } | null>(null);
 
     const onValidate = () => {
         try {
             const schema = JSON.parse(schemaText);
             const data = JSON.parse(dataText);
-            setResult(validateSimpleSchema(schema, data));
+            if (mode === 'single') {
+                const checked = validateSimpleSchema(schema, data);
+                setResult({
+                    valid: checked.valid,
+                    errors: checked.errors.slice(0, maxErrors),
+                    checked: 1,
+                });
+                return;
+            }
+
+            if (!Array.isArray(data)) throw new Error('Batch mode expects JSON array payload.');
+            const allErrors: string[] = [];
+            data.forEach((item, index) => {
+                const rowResult = validateSimpleSchema(schema, item, `item[${index}]`);
+                allErrors.push(...rowResult.errors);
+            });
+            setResult({
+                valid: allErrors.length === 0,
+                errors: allErrors.slice(0, maxErrors),
+                checked: data.length,
+            });
         } catch (error) {
-            setResult({ valid: false, errors: [error instanceof Error ? error.message : 'Invalid JSON'] });
+            setResult({ valid: false, errors: [error instanceof Error ? error.message : 'Invalid JSON'], checked: 0 });
         }
     };
 
     return (
         <ToolCard>
             <div className="space-y-4">
+                <div className="flex flex-wrap gap-2">
+                    <Button size="sm" className={compactButtonClass} variant={mode === 'single' ? 'default' : 'outline'} onClick={() => setMode('single')}>
+                        Single Payload
+                    </Button>
+                    <Button size="sm" className={compactButtonClass} variant={mode === 'batch-array' ? 'default' : 'outline'} onClick={() => setMode('batch-array')}>
+                        Batch Array
+                    </Button>
+                    <input type="number" min={5} max={500} value={maxErrors} onChange={(e) => setMaxErrors(Number(e.target.value))} className={`${inputClass} w-28`} />
+                </div>
                 <div className="grid gap-3 md:grid-cols-2">
                     <textarea value={schemaText} onChange={(e) => setSchemaText(e.target.value)} className={`${textAreaClass} h-40`} placeholder="JSON Schema" />
                     <textarea value={dataText} onChange={(e) => setDataText(e.target.value)} className={`${textAreaClass} h-40`} placeholder="JSON Data" />
@@ -301,6 +368,7 @@ export function JsonSchemaValidatorTool() {
                 {result ? (
                     <div className={`rounded-xl border p-3 text-xs ${result.valid ? 'border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-900/80 dark:bg-emerald-950/40 dark:text-emerald-200' : 'border-red-200 bg-red-50 text-red-800 dark:border-red-900/80 dark:bg-red-950/40 dark:text-red-200'}`}>
                         <p className="font-semibold">{result.valid ? 'Schema validation passed' : 'Schema validation failed'}</p>
+                        <p className="mt-1">Checked payloads: {result.checked}</p>
                         <ul className="mt-1 space-y-1">{result.errors.map((err) => <li key={err}>- {err}</li>)}</ul>
                     </div>
                 ) : null}
@@ -372,26 +440,45 @@ export function CsvJsonConverterTool() {
     const [input, setInput] = useState('name,role\nWayan,Developer');
     const [output, setOutput] = useState('');
     const [error, setError] = useState('');
+    const [delimiter, setDelimiter] = useState(',');
+    const [csvHasHeader, setCsvHasHeader] = useState(true);
+    const [prettyJson, setPrettyJson] = useState(true);
+    const [diagnostics, setDiagnostics] = useState<string[]>([]);
 
     const onConvert = () => {
         try {
             if (mode === 'csv-to-json') {
-                const rows = parseCsv(input);
+                const rows = parseCsv(input, delimiter || ',');
                 if (rows.length < 1) throw new Error('CSV is empty.');
-                const [header, ...body] = rows;
+                const header = csvHasHeader ? rows[0] : rows[0].map((_, index) => `col_${index + 1}`);
+                const body = csvHasHeader ? rows.slice(1) : rows;
                 const mapped = body.map((row) => Object.fromEntries(header.map((key, idx) => [key, row[idx] ?? ''])));
-                setOutput(JSON.stringify(mapped, null, 2));
+                setOutput(prettyJson ? JSON.stringify(mapped, null, 2) : JSON.stringify(mapped));
+                setDiagnostics([`Rows parsed: ${rows.length}`, `Output objects: ${mapped.length}`, `Columns: ${header.length}`]);
             } else {
-                const parsed = JSON.parse(input) as Array<Record<string, unknown>>;
-                if (!Array.isArray(parsed) || parsed.length === 0) throw new Error('JSON must be a non-empty array of objects.');
-                const keys = Array.from(new Set(parsed.flatMap((item) => Object.keys(item))));
-                const rows = [keys, ...parsed.map((item) => keys.map((key) => String(item[key] ?? '')))];
-                setOutput(rowsToCsv(rows));
+                const parsed = JSON.parse(input) as Array<Record<string, unknown>> | Record<string, unknown>;
+                const normalized = Array.isArray(parsed) ? parsed : [parsed];
+                if (normalized.length === 0) throw new Error('JSON input is empty.');
+                const keys = Array.from(new Set(normalized.flatMap((item) => Object.keys(item))));
+                const rows = [
+                    keys,
+                    ...normalized.map((item) =>
+                        keys.map((key) => {
+                            const value = item[key];
+                            if (value === null || value === undefined) return '';
+                            return typeof value === 'object' ? JSON.stringify(value) : String(value);
+                        }),
+                    ),
+                ];
+                const csvRows = csvHasHeader ? rows : rows.slice(1);
+                setOutput(rowsToCsv(csvRows, delimiter || ','));
+                setDiagnostics([`JSON records: ${normalized.length}`, `Columns exported: ${keys.length}`, `Delimiter: "${delimiter || ','}"`]);
             }
             setError('');
         } catch (err) {
             setOutput('');
             setError(err instanceof Error ? err.message : 'Conversion failed');
+            setDiagnostics([]);
         }
     };
 
@@ -405,6 +492,17 @@ export function CsvJsonConverterTool() {
                     <Button size="sm" className={compactButtonClass} variant={mode === 'json-to-csv' ? 'default' : 'outline'} onClick={() => setMode('json-to-csv')}>
                         JSON to CSV
                     </Button>
+                    <input value={delimiter} onChange={(e) => setDelimiter(e.target.value.slice(0, 1))} className={`${inputClass} w-14`} />
+                    <label className="inline-flex items-center gap-1 rounded-lg border border-slate-300 px-2 py-1.5 text-xs dark:border-slate-700">
+                        <input type="checkbox" checked={csvHasHeader} onChange={(e) => setCsvHasHeader(e.target.checked)} className="h-3.5 w-3.5" />
+                        Header row
+                    </label>
+                    {mode === 'csv-to-json' ? (
+                        <label className="inline-flex items-center gap-1 rounded-lg border border-slate-300 px-2 py-1.5 text-xs dark:border-slate-700">
+                            <input type="checkbox" checked={prettyJson} onChange={(e) => setPrettyJson(e.target.checked)} className="h-3.5 w-3.5" />
+                            Pretty JSON
+                        </label>
+                    ) : null}
                 </div>
                 <div className="grid gap-3 md:grid-cols-2">
                     <textarea value={input} onChange={(e) => setInput(e.target.value)} className={`${textAreaClass} h-40`} />
@@ -414,6 +512,13 @@ export function CsvJsonConverterTool() {
                     <Button size="sm" className={compactButtonClass} onClick={onConvert}>Convert</Button>
                     {output ? <CopyButton value={output} className={compactButtonClass} /> : null}
                 </div>
+                {diagnostics.length > 0 ? (
+                    <ul className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300">
+                        {diagnostics.map((item) => (
+                            <li key={item}>- {item}</li>
+                        ))}
+                    </ul>
+                ) : null}
                 {error ? <p className="rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-700 dark:border-red-900/80 dark:bg-red-950/40 dark:text-red-200">{error}</p> : null}
             </div>
         </ToolCard>
@@ -423,6 +528,9 @@ export function CsvJsonConverterTool() {
 export function UnixTimestampConverterTool() {
     const [timestamp, setTimestamp] = useState(initialTimestamp);
     const [dateText, setDateText] = useState(initialDateText);
+    const [relativeInput, setRelativeInput] = useState('now+15m');
+    const [snapshot, setSnapshot] = useState('');
+    const [referenceNowMs, setReferenceNowMs] = useState(initialNow.getTime());
 
     const parsedDate = useMemo(() => {
         const n = Number(timestamp.trim());
@@ -442,6 +550,50 @@ export function UnixTimestampConverterTool() {
         };
     }, [dateText]);
 
+    const relativeDate = useMemo(() => {
+        const trimmed = relativeInput.replace(/\s+/g, '');
+        const match = trimmed.match(/^now([+-])(\d+)(s|m|h|d)$/i);
+        if (!match) return null;
+        const [, op, amountText, unit] = match;
+        const amount = Number(amountText);
+        if (Number.isNaN(amount)) return null;
+        const unitMs = unit.toLowerCase() === 's' ? 1000 : unit.toLowerCase() === 'm' ? 60000 : unit.toLowerCase() === 'h' ? 3600000 : 86400000;
+        const delta = amount * unitMs;
+        const target = new Date(referenceNowMs + (op === '+' ? delta : -delta));
+        return {
+            iso: target.toISOString(),
+            sec: Math.floor(target.getTime() / 1000),
+            ms: target.getTime(),
+        };
+    }, [referenceNowMs, relativeInput]);
+
+    const nowDiffLabel = useMemo(() => {
+        if (!parsedDate) return 'Invalid';
+        const diffSec = Math.round((parsedDate.getTime() - referenceNowMs) / 1000);
+        if (diffSec === 0) return 'now';
+        const direction = diffSec > 0 ? 'from now' : 'ago';
+        const abs = Math.abs(diffSec);
+        if (abs >= 86400) return `${(abs / 86400).toFixed(2)} days ${direction}`;
+        if (abs >= 3600) return `${(abs / 3600).toFixed(2)} hours ${direction}`;
+        if (abs >= 60) return `${(abs / 60).toFixed(2)} minutes ${direction}`;
+        return `${abs} seconds ${direction}`;
+    }, [parsedDate, referenceNowMs]);
+
+    const buildSnapshot = () => {
+        const payload = {
+            timestampInput: timestamp,
+            dateInput: dateText,
+            referenceNow: new Date(referenceNowMs).toISOString(),
+            timestampToUtc: parsedDate?.toISOString() ?? null,
+            timestampToLocal: parsedDate?.toString() ?? null,
+            timestampDeltaFromNow: nowDiffLabel,
+            dateToSeconds: fromDate?.sec ?? null,
+            dateToMilliseconds: fromDate?.ms ?? null,
+            relative: relativeDate,
+        };
+        setSnapshot(JSON.stringify(payload, null, 2));
+    };
+
     return (
         <ToolCard>
             <div className="space-y-4">
@@ -455,12 +607,31 @@ export function UnixTimestampConverterTool() {
                         <input value={dateText} onChange={(e) => setDateText(e.target.value)} className={inputClass} />
                     </label>
                 </div>
+                <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto]">
+                    <input value={relativeInput} onChange={(e) => setRelativeInput(e.target.value)} className={inputClass} placeholder="Relative time (e.g. now+15m, now-2h)" />
+                    <div className="flex gap-2">
+                        <Button size="sm" className={compactButtonClass} variant="outline" onClick={() => setReferenceNowMs(Date.now())}>
+                            Refresh Now
+                        </Button>
+                        <Button size="sm" className={compactButtonClass} onClick={buildSnapshot}>
+                            Build Snapshot
+                        </Button>
+                    </div>
+                </div>
                 <div className="grid gap-2 rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs dark:border-slate-700 dark:bg-slate-900">
                     <p>From timestamp (UTC): {parsedDate ? parsedDate.toISOString() : 'Invalid'}</p>
                     <p>From timestamp (local): {parsedDate ? parsedDate.toString() : 'Invalid'}</p>
+                    <p>Timestamp delta: {nowDiffLabel}</p>
                     <p>From date to sec: {fromDate ? fromDate.sec : 'Invalid'}</p>
                     <p>From date to ms: {fromDate ? fromDate.ms : 'Invalid'}</p>
+                    <p>Relative result: {relativeDate ? `${relativeDate.iso} (${relativeDate.sec})` : 'Invalid relative format'}</p>
                 </div>
+                {snapshot ? (
+                    <div className="space-y-2">
+                        <pre className="max-h-52 overflow-auto rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs dark:border-slate-700 dark:bg-slate-900">{snapshot}</pre>
+                        <CopyButton value={snapshot} className={compactButtonClass} />
+                    </div>
+                ) : null}
             </div>
         </ToolCard>
     );
@@ -580,6 +751,8 @@ export function HtmlEntityEncoderTool() {
 
 export function IpSubnetCalculatorTool() {
     const [cidr, setCidr] = useState('192.168.10.15/24');
+    const [newPrefix, setNewPrefix] = useState(26);
+    const [previewSubnets, setPreviewSubnets] = useState(4);
     const result = useMemo(() => {
         const [ipRaw, prefixRaw] = cidr.split('/');
         const prefix = Number(prefixRaw);
@@ -589,9 +762,25 @@ export function IpSubnetCalculatorTool() {
         const mask = prefix === 0 ? 0 : (0xffffffff << (32 - prefix)) >>> 0;
         const network = ipInt & mask;
         const broadcast = network | (~mask >>> 0);
-        const hosts = prefix >= 31 ? 0 : 2 ** (32 - prefix) - 2;
+        const totalAddresses = 2 ** (32 - prefix);
+        const hosts = prefix >= 31 ? 0 : totalAddresses - 2;
         const firstHost = prefix >= 31 ? network : network + 1;
         const lastHost = prefix >= 31 ? broadcast : broadcast - 1;
+        const wildcardMask = (~mask >>> 0);
+        const subnetList: Array<{ network: string; broadcast: string; cidr: string }> = [];
+        if (newPrefix > prefix && newPrefix <= 32) {
+            const step = 2 ** (32 - newPrefix);
+            const totalSubnets = 2 ** (newPrefix - prefix);
+            for (let i = 0; i < Math.min(totalSubnets, Math.max(1, previewSubnets)); i += 1) {
+                const net = (network + i * step) >>> 0;
+                const broad = (net + step - 1) >>> 0;
+                subnetList.push({
+                    network: intToIp(net),
+                    broadcast: intToIp(broad),
+                    cidr: `${intToIp(net)}/${newPrefix}`,
+                });
+            }
+        }
 
         return {
             network: intToIp(network),
@@ -599,22 +788,43 @@ export function IpSubnetCalculatorTool() {
             firstHost: intToIp(firstHost >>> 0),
             lastHost: intToIp(lastHost >>> 0),
             subnetMask: intToIp(mask),
+            wildcardMask: intToIp(wildcardMask),
             usableHosts: hosts,
+            totalAddresses,
+            subnetList,
         };
-    }, [cidr]);
+    }, [cidr, newPrefix, previewSubnets]);
 
     return (
         <ToolCard>
             <div className="space-y-4">
                 <input value={cidr} onChange={(e) => setCidr(e.target.value)} className={inputClass} placeholder="192.168.1.10/24" />
+                <div className="grid gap-3 md:grid-cols-2">
+                    <input type="number" min={0} max={32} value={newPrefix} onChange={(e) => setNewPrefix(Number(e.target.value))} className={inputClass} placeholder="Subnet split prefix" />
+                    <input type="number" min={1} max={32} value={previewSubnets} onChange={(e) => setPreviewSubnets(Number(e.target.value))} className={inputClass} placeholder="Preview subnets" />
+                </div>
                 {result ? (
                     <div className="grid gap-2 rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs dark:border-slate-700 dark:bg-slate-900">
                         <p>Subnet mask: {result.subnetMask}</p>
+                        <p>Wildcard mask: {result.wildcardMask}</p>
                         <p>Network: {result.network}</p>
                         <p>Broadcast: {result.broadcast}</p>
                         <p>First host: {result.firstHost}</p>
                         <p>Last host: {result.lastHost}</p>
+                        <p>Total addresses: {result.totalAddresses}</p>
                         <p>Usable hosts: {result.usableHosts}</p>
+                        {result.subnetList.length > 0 ? (
+                            <div className="mt-2 rounded-lg border border-slate-200 bg-white p-2 dark:border-slate-700 dark:bg-slate-950">
+                                <p className="mb-1 font-semibold">Subnet split preview</p>
+                                <ul className="space-y-1">
+                                    {result.subnetList.map((subnet) => (
+                                        <li key={subnet.cidr}>
+                                            - {subnet.cidr} ({`${subnet.network} -> ${subnet.broadcast}`})
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        ) : null}
                     </div>
                 ) : (
                     <p className="rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-700 dark:border-red-900/80 dark:bg-red-950/40 dark:text-red-200">Invalid CIDR format.</p>
@@ -626,6 +836,7 @@ export function IpSubnetCalculatorTool() {
 
 export function PasswordStrengthCheckerTool() {
     const [password, setPassword] = useState('');
+    const [guessesPerSecond, setGuessesPerSecond] = useState(1e10);
 
     const analysis = useMemo(() => {
         let score = 0;
@@ -647,17 +858,30 @@ export function PasswordStrengthCheckerTool() {
         }
         score = Math.max(0, Math.min(100, score));
         const level = score >= 85 ? 'Very Strong' : score >= 65 ? 'Strong' : score >= 45 ? 'Medium' : 'Weak';
-        return { score, level, tips };
-    }, [password]);
+        const entropy = entropyBits(password);
+        const combinations = 2 ** entropy;
+        const averageCrackSeconds = combinations / Math.max(1, guessesPerSecond) / 2;
+        const onlineCrackSeconds = combinations / 100 / 2;
+        return { score, level, tips, entropy, averageCrackSeconds, onlineCrackSeconds };
+    }, [guessesPerSecond, password]);
 
     return (
         <ToolCard>
             <div className="space-y-4">
                 <input type="text" value={password} onChange={(e) => setPassword(e.target.value)} className={inputClass} placeholder="Enter password to evaluate" />
+                <label className="text-sm">
+                    <SectionLabel>Offline guesses/sec assumption</SectionLabel>
+                    <input type="number" min={1000} max={1e13} step={1000} value={guessesPerSecond} onChange={(e) => setGuessesPerSecond(Number(e.target.value))} className={inputClass} />
+                </label>
                 <div className="h-2 rounded-full bg-slate-200 dark:bg-slate-800">
                     <div className={`h-2 rounded-full ${analysis.score >= 65 ? 'bg-emerald-500' : analysis.score >= 45 ? 'bg-amber-500' : 'bg-red-500'}`} style={{ width: `${analysis.score}%` }} />
                 </div>
                 <p className="text-sm font-semibold">Strength: {analysis.level} ({analysis.score}/100)</p>
+                <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs dark:border-slate-700 dark:bg-slate-900">
+                    <p>Entropy: {analysis.entropy.toFixed(1)} bits</p>
+                    <p>Estimated crack time (offline): {humanDuration(analysis.averageCrackSeconds)}</p>
+                    <p>Estimated crack time (online, 100 guesses/s): {humanDuration(analysis.onlineCrackSeconds)}</p>
+                </div>
                 <ul className="space-y-1 text-xs text-slate-600 dark:text-slate-300">
                     {analysis.tips.map((tip) => <li key={tip}>- {tip}</li>)}
                 </ul>
@@ -668,24 +892,83 @@ export function PasswordStrengthCheckerTool() {
 
 export function HashGeneratorTool() {
     const [input, setInput] = useState('Wayan Tisna');
-    const [sha256, setSha256] = useState('');
-    const md5Hash = useMemo(() => md5(input), [input]);
+    const [batchMode, setBatchMode] = useState(false);
+    const [includeSha1, setIncludeSha1] = useState(true);
+    const [includeSha512, setIncludeSha512] = useState(true);
+    const [useHmacSha256, setUseHmacSha256] = useState(false);
+    const [hmacSecret, setHmacSecret] = useState('');
+    const [output, setOutput] = useState('');
 
-    const genSha256 = async () => {
-        const bytes = new TextEncoder().encode(input);
-        const digest = await crypto.subtle.digest('SHA-256', bytes);
-        const value = Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, '0')).join('');
-        setSha256(value);
+    const genHashes = async () => {
+        const rows = batchMode
+            ? input
+                  .split(/\r?\n/)
+                  .map((line) => line.trim())
+                  .filter(Boolean)
+            : [input];
+        const result: Array<Record<string, string>> = [];
+
+        for (const row of rows) {
+            const item: Record<string, string> = {
+                input: row,
+                md5: md5(row),
+                sha256: await digestText('SHA-256', row),
+            };
+            if (includeSha1) item.sha1 = await digestText('SHA-1', row);
+            if (includeSha512) item.sha512 = await digestText('SHA-512', row);
+            if (useHmacSha256 && hmacSecret.trim()) {
+                const key = await crypto.subtle.importKey(
+                    'raw',
+                    new TextEncoder().encode(hmacSecret.trim()),
+                    { name: 'HMAC', hash: 'SHA-256' },
+                    false,
+                    ['sign'],
+                );
+                const signature = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(row));
+                item.hmacSha256 = bytesToHex(signature);
+            }
+            result.push(item);
+        }
+
+        setOutput(JSON.stringify(result, null, 2));
     };
 
     return (
         <ToolCard>
             <div className="space-y-4">
-                <textarea value={input} onChange={(e) => setInput(e.target.value)} className={`${textAreaClass} h-24`} />
                 <div className="flex flex-wrap gap-2">
-                    <Button size="sm" className={compactButtonClass} onClick={genSha256}>
+                    <Button size="sm" className={compactButtonClass} variant={!batchMode ? 'default' : 'outline'} onClick={() => setBatchMode(false)}>
+                        Single
+                    </Button>
+                    <Button size="sm" className={compactButtonClass} variant={batchMode ? 'default' : 'outline'} onClick={() => setBatchMode(true)}>
+                        Batch
+                    </Button>
+                </div>
+                <textarea
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    className={`${textAreaClass} h-24`}
+                    placeholder={batchMode ? 'One value per line' : 'Text to hash'}
+                />
+                <div className="flex flex-wrap gap-2 text-xs">
+                    <label className="inline-flex items-center gap-1 rounded-lg border border-slate-300 px-2 py-1.5 dark:border-slate-700">
+                        <input type="checkbox" checked={includeSha1} onChange={(e) => setIncludeSha1(e.target.checked)} className="h-3.5 w-3.5" />
+                        SHA-1
+                    </label>
+                    <label className="inline-flex items-center gap-1 rounded-lg border border-slate-300 px-2 py-1.5 dark:border-slate-700">
+                        <input type="checkbox" checked={includeSha512} onChange={(e) => setIncludeSha512(e.target.checked)} className="h-3.5 w-3.5" />
+                        SHA-512
+                    </label>
+                    <label className="inline-flex items-center gap-1 rounded-lg border border-slate-300 px-2 py-1.5 dark:border-slate-700">
+                        <input type="checkbox" checked={useHmacSha256} onChange={(e) => setUseHmacSha256(e.target.checked)} className="h-3.5 w-3.5" />
+                        HMAC-SHA256
+                    </label>
+                </div>
+                {useHmacSha256 ? <input value={hmacSecret} onChange={(e) => setHmacSecret(e.target.value)} className={inputClass} placeholder="HMAC secret key" /> : null}
+                <div className="flex flex-wrap gap-2">
+                    <Button size="sm" className={compactButtonClass} onClick={genHashes}>
                         <ShieldCheck className="h-3.5 w-3.5" />
-                        Generate SHA-256
+                        Generate Hashes
                     </Button>
                     <Button size="sm" className={compactButtonClass} variant="outline" onClick={() => setInput('')}>
                         <RefreshCcw className="h-3.5 w-3.5" />
@@ -693,16 +976,9 @@ export function HashGeneratorTool() {
                     </Button>
                 </div>
                 <div className="space-y-2 text-xs">
-                    <div>
-                        <SectionLabel>MD5</SectionLabel>
-                        <pre className="rounded-lg border border-slate-200 bg-slate-50 p-2 dark:border-slate-700 dark:bg-slate-900">{md5Hash}</pre>
-                        <CopyButton value={md5Hash} className={compactButtonClass} />
-                    </div>
-                    <div>
-                        <SectionLabel>SHA-256</SectionLabel>
-                        <pre className="rounded-lg border border-slate-200 bg-slate-50 p-2 dark:border-slate-700 dark:bg-slate-900">{sha256 || 'Click generate'}</pre>
-                        {sha256 ? <CopyButton value={sha256} className={compactButtonClass} /> : null}
-                    </div>
+                    <SectionLabel>Hash Output</SectionLabel>
+                    <pre className="max-h-72 overflow-auto rounded-lg border border-slate-200 bg-slate-50 p-2 dark:border-slate-700 dark:bg-slate-900">{output || 'Click "Generate Hashes" to produce output.'}</pre>
+                    {output ? <CopyButton value={output} className={compactButtonClass} /> : null}
                 </div>
             </div>
         </ToolCard>

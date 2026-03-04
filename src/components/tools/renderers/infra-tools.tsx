@@ -59,6 +59,24 @@ function percentile(values: number[], p: number) {
     return sorted[idx];
 }
 
+function wait(ms: number) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function hmacSha256Hex(message: string, key: string) {
+    const cryptoKey = await crypto.subtle.importKey(
+        'raw',
+        new TextEncoder().encode(key),
+        { name: 'HMAC', hash: 'SHA-256' },
+        false,
+        ['sign'],
+    );
+    const signature = await crypto.subtle.sign('HMAC', cryptoKey, new TextEncoder().encode(message));
+    return Array.from(new Uint8Array(signature))
+        .map((b) => b.toString(16).padStart(2, '0'))
+        .join('');
+}
+
 export function SslCertificateCheckerTool() {
     const [target, setTarget] = useState('wayantisna.com');
     const [loading, setLoading] = useState(false);
@@ -152,15 +170,47 @@ export function CloudCostCalculatorTool() {
     const [egressGb, setEgressGb] = useState(1200);
     const [egressRate, setEgressRate] = useState(providerRates.aws.egress);
     const [discount, setDiscount] = useState(0);
+    const [reservedDiscount, setReservedDiscount] = useState(22);
+    const [haMultiplier, setHaMultiplier] = useState(1);
+    const [annualGrowth, setAnnualGrowth] = useState(15);
+    const [splitDev, setSplitDev] = useState(20);
+    const [splitStage, setSplitStage] = useState(15);
+    const [splitProd, setSplitProd] = useState(65);
 
     const calc = useMemo(() => {
-        const computeCost = instances * hoursPerMonth * computeRate;
+        const normalizedSplitTotal = Math.max(1, splitDev + splitStage + splitProd);
+        const envRatios = {
+            dev: splitDev / normalizedSplitTotal,
+            stage: splitStage / normalizedSplitTotal,
+            prod: splitProd / normalizedSplitTotal,
+        };
+        const computeCost = instances * hoursPerMonth * computeRate * haMultiplier;
         const storageCost = storageGb * storageRate;
         const egressCost = egressGb * egressRate;
         const subtotal = computeCost + storageCost + egressCost;
         const discounted = subtotal * (1 - discount / 100);
-        return { computeCost, storageCost, egressCost, subtotal, total: discounted };
-    }, [computeRate, discount, egressGb, egressRate, hoursPerMonth, instances, storageGb, storageRate]);
+        const reservedTotal = discounted * (1 - reservedDiscount / 100);
+        const annualOnDemand = discounted * 12;
+        const annualReserved = reservedTotal * 12;
+        const nextYearProjected = annualReserved * (1 + annualGrowth / 100);
+        return {
+            computeCost,
+            storageCost,
+            egressCost,
+            subtotal,
+            discounted,
+            reservedTotal,
+            annualOnDemand,
+            annualReserved,
+            nextYearProjected,
+            envRatios,
+            envMonthly: {
+                dev: reservedTotal * envRatios.dev,
+                stage: reservedTotal * envRatios.stage,
+                prod: reservedTotal * envRatios.prod,
+            },
+        };
+    }, [annualGrowth, computeRate, discount, egressGb, egressRate, haMultiplier, hoursPerMonth, instances, reservedDiscount, splitDev, splitProd, splitStage, storageGb, storageRate]);
 
     const onProviderChange = (next: CloudProvider) => {
         setProvider(next);
@@ -199,6 +249,10 @@ export function CloudCostCalculatorTool() {
                         <input type="number" min={0} max={90} value={discount} onChange={(e) => setDiscount(Number(e.target.value))} className={inputClass} />
                     </label>
                     <label className="text-sm">
+                        <SectionLabel>Reserved Savings (%)</SectionLabel>
+                        <input type="number" min={0} max={80} value={reservedDiscount} onChange={(e) => setReservedDiscount(Number(e.target.value))} className={inputClass} />
+                    </label>
+                    <label className="text-sm">
                         <SectionLabel>Storage (GB)</SectionLabel>
                         <input type="number" min={0} value={storageGb} onChange={(e) => setStorageGb(Number(e.target.value))} className={inputClass} />
                     </label>
@@ -214,13 +268,44 @@ export function CloudCostCalculatorTool() {
                         <SectionLabel>Egress Rate ($/GB)</SectionLabel>
                         <input type="number" min={0} step="0.001" value={egressRate} onChange={(e) => setEgressRate(Number(e.target.value))} className={inputClass} />
                     </label>
+                    <label className="text-sm">
+                        <SectionLabel>HA Multiplier</SectionLabel>
+                        <input type="number" min={1} max={4} step="0.1" value={haMultiplier} onChange={(e) => setHaMultiplier(Number(e.target.value))} className={inputClass} />
+                    </label>
+                    <label className="text-sm">
+                        <SectionLabel>Annual Growth (%)</SectionLabel>
+                        <input type="number" min={0} max={200} value={annualGrowth} onChange={(e) => setAnnualGrowth(Number(e.target.value))} className={inputClass} />
+                    </label>
                 </div>
 
                 <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm dark:border-slate-700 dark:bg-slate-900">
                     <p>Compute: ${calc.computeCost.toFixed(2)}</p>
                     <p>Storage: ${calc.storageCost.toFixed(2)}</p>
                     <p>Egress: ${calc.egressCost.toFixed(2)}</p>
-                    <p className="mt-1 font-semibold">Estimated Monthly Total: ${calc.total.toFixed(2)}</p>
+                    <p className="mt-1">Subtotal: ${calc.subtotal.toFixed(2)}</p>
+                    <p>After discount: ${calc.discounted.toFixed(2)}</p>
+                    <p className="font-semibold">Estimated Monthly Total (reserved): ${calc.reservedTotal.toFixed(2)}</p>
+                    <p className="mt-2">Annual On-demand: ${calc.annualOnDemand.toFixed(2)}</p>
+                    <p>Annual Reserved: ${calc.annualReserved.toFixed(2)}</p>
+                    <p>Projected next year: ${calc.nextYearProjected.toFixed(2)}</p>
+                </div>
+
+                <div className="grid gap-3 rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs dark:border-slate-700 dark:bg-slate-900 md:grid-cols-3">
+                    <label>
+                        <SectionLabel>Dev Split (%)</SectionLabel>
+                        <input type="number" min={0} max={100} value={splitDev} onChange={(e) => setSplitDev(Number(e.target.value))} className={inputClass} />
+                        <p className="mt-1 text-slate-500 dark:text-slate-400">${calc.envMonthly.dev.toFixed(2)}/mo</p>
+                    </label>
+                    <label>
+                        <SectionLabel>Stage Split (%)</SectionLabel>
+                        <input type="number" min={0} max={100} value={splitStage} onChange={(e) => setSplitStage(Number(e.target.value))} className={inputClass} />
+                        <p className="mt-1 text-slate-500 dark:text-slate-400">${calc.envMonthly.stage.toFixed(2)}/mo</p>
+                    </label>
+                    <label>
+                        <SectionLabel>Prod Split (%)</SectionLabel>
+                        <input type="number" min={0} max={100} value={splitProd} onChange={(e) => setSplitProd(Number(e.target.value))} className={inputClass} />
+                        <p className="mt-1 text-slate-500 dark:text-slate-400">${calc.envMonthly.prod.toFixed(2)}/mo</p>
+                    </label>
                 </div>
             </div>
         </ToolCard>
@@ -234,20 +319,25 @@ export function ApiLoadTesterTool() {
     const [bodyText, setBodyText] = useState('{"event":"ping"}');
     const [requests, setRequests] = useState(30);
     const [concurrency, setConcurrency] = useState(5);
+    const [requestDelayMs, setRequestDelayMs] = useState(0);
+    const [rampBatches, setRampBatches] = useState(1);
     const [running, setRunning] = useState(false);
     const [progress, setProgress] = useState(0);
+    const [resultSnapshot, setResultSnapshot] = useState('');
     const [report, setReport] = useState<ReportState>({
         level: 'idle',
         title: 'Ready to run load test',
-        details: ['This tool sends requests via server-side proxy with timeout handling.'],
+        details: ['Server-side proxy test with concurrency, ramp-up, and latency percentiles.'],
     });
 
     const onRun = async () => {
         setRunning(true);
         setProgress(0);
+        setResultSnapshot('');
         try {
             const total = Math.max(1, Math.min(300, requests));
             const workers = Math.max(1, Math.min(20, concurrency));
+            const batches = Math.max(1, Math.min(10, rampBatches));
             const parsedHeaders = parseHeadersInput(headersText);
 
             let cursor = 0;
@@ -255,12 +345,15 @@ export function ApiLoadTesterTool() {
             let success = 0;
             let failed = 0;
             const latencies: number[] = [];
+            const statusBuckets: Record<string, number> = {};
+            const failureBuckets: Record<string, number> = {};
+            const startedAt = performance.now();
 
-            const runWorker = async () => {
+            const runWorker = async (limit: number) => {
                 while (true) {
                     const index = cursor;
                     cursor += 1;
-                    if (index >= total) break;
+                    if (index >= limit) break;
                     const started = performance.now();
                     try {
                         const response = await fetch('/api/tools/webhook-test', {
@@ -273,33 +366,71 @@ export function ApiLoadTesterTool() {
                                 body: method === 'GET' ? '' : bodyText,
                             }),
                         });
-                        const data = (await response.json()) as { ok?: boolean };
-                        if (response.ok && data.ok) success += 1;
-                        else failed += 1;
-                    } catch {
+                        const data = (await response.json()) as { ok?: boolean; status?: number; error?: string };
+                        const statusKey = String(data.status ?? response.status ?? 'n/a');
+                        statusBuckets[statusKey] = (statusBuckets[statusKey] ?? 0) + 1;
+                        if (response.ok && data.ok) {
+                            success += 1;
+                        } else {
+                            failed += 1;
+                            const reason = data.error ? String(data.error) : `HTTP ${statusKey}`;
+                            failureBuckets[reason] = (failureBuckets[reason] ?? 0) + 1;
+                        }
+                    } catch (error) {
                         failed += 1;
+                        const reason = error instanceof Error ? error.message : 'Network error';
+                        failureBuckets[reason] = (failureBuckets[reason] ?? 0) + 1;
                     } finally {
                         const elapsed = performance.now() - started;
                         latencies.push(elapsed);
                         done += 1;
                         setProgress(Math.round((done / total) * 100));
+                        if (requestDelayMs > 0) await wait(requestDelayMs);
                     }
                 }
             };
 
-            await Promise.all(Array.from({ length: workers }, runWorker));
+            const workersPerBatch = Math.max(1, Math.ceil(workers / batches));
+            const perBatch = Math.ceil(total / batches);
+            for (let batch = 0; batch < batches; batch += 1) {
+                const batchLimit = Math.min(total, (batch + 1) * perBatch);
+                await Promise.all(Array.from({ length: workersPerBatch }, () => runWorker(batchLimit)));
+                if (batch < batches - 1) await wait(150);
+            }
             const avg = latencies.length ? latencies.reduce((sum, v) => sum + v, 0) / latencies.length : 0;
+            const elapsedSeconds = Math.max(0.001, (performance.now() - startedAt) / 1000);
+            const throughput = total / elapsedSeconds;
+            const errorRate = (failed / total) * 100;
+            const snapshot = {
+                total,
+                workers,
+                rampBatches: batches,
+                success,
+                failed,
+                errorRate: Number(errorRate.toFixed(2)),
+                throughputRps: Number(throughput.toFixed(2)),
+                avgLatencyMs: Number(avg.toFixed(1)),
+                p50Ms: Number(percentile(latencies, 50).toFixed(1)),
+                p95Ms: Number(percentile(latencies, 95).toFixed(1)),
+                p99Ms: Number(percentile(latencies, 99).toFixed(1)),
+                statusBuckets,
+                failureBuckets,
+            };
+            setResultSnapshot(JSON.stringify(snapshot, null, 2));
 
             setReport({
-                level: failed > 0 ? 'warning' : 'valid',
+                level: failed > 0 ? (errorRate > 10 ? 'error' : 'warning') : 'valid',
                 title: 'Load test completed',
                 details: [
                     `Total requests: ${total}`,
                     `Success: ${success}`,
                     `Failed: ${failed}`,
+                    `Error rate: ${errorRate.toFixed(1)}%`,
+                    `Throughput: ${throughput.toFixed(2)} req/s`,
                     `Avg latency: ${avg.toFixed(1)} ms`,
                     `P50: ${percentile(latencies, 50).toFixed(1)} ms`,
                     `P95: ${percentile(latencies, 95).toFixed(1)} ms`,
+                    `P99: ${percentile(latencies, 99).toFixed(1)} ms`,
                 ],
             });
         } catch (error) {
@@ -336,6 +467,14 @@ export function ApiLoadTesterTool() {
                         <SectionLabel>Concurrency</SectionLabel>
                         <input type="number" min={1} max={20} value={concurrency} onChange={(e) => setConcurrency(Number(e.target.value))} className={inputClass} />
                     </label>
+                    <label className="text-sm">
+                        <SectionLabel>Ramp Batches</SectionLabel>
+                        <input type="number" min={1} max={10} value={rampBatches} onChange={(e) => setRampBatches(Number(e.target.value))} className={inputClass} />
+                    </label>
+                    <label className="text-sm">
+                        <SectionLabel>Delay per Request (ms)</SectionLabel>
+                        <input type="number" min={0} max={2000} value={requestDelayMs} onChange={(e) => setRequestDelayMs(Number(e.target.value))} className={inputClass} />
+                    </label>
                 </div>
 
                 <div className="grid gap-3 md:grid-cols-2">
@@ -349,6 +488,16 @@ export function ApiLoadTesterTool() {
                 </Button>
 
                 <ReportBox report={report} />
+
+                {resultSnapshot ? (
+                    <div className="space-y-2">
+                        <SectionLabel>Run Snapshot (JSON)</SectionLabel>
+                        <pre className="max-h-64 overflow-auto rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs dark:border-slate-700 dark:bg-slate-900">
+                            {resultSnapshot}
+                        </pre>
+                        <CopyButton value={resultSnapshot} className={compactButtonClass} />
+                    </div>
+                ) : null}
             </div>
         </ToolCard>
     );
@@ -490,11 +639,44 @@ export function KubernetesYamlGeneratorTool() {
     const [containerPort, setContainerPort] = useState(3000);
     const [servicePort, setServicePort] = useState(80);
     const [serviceType, setServiceType] = useState<'ClusterIP' | 'LoadBalancer' | 'NodePort'>('ClusterIP');
+    const [envText, setEnvText] = useState('NODE_ENV=production\nAPP_NAME=portfolio-api');
+    const [cpuRequest, setCpuRequest] = useState('250m');
+    const [memoryRequest, setMemoryRequest] = useState('256Mi');
+    const [cpuLimit, setCpuLimit] = useState('1000m');
+    const [memoryLimit, setMemoryLimit] = useState('512Mi');
+    const [livenessPath, setLivenessPath] = useState('/health');
+    const [readinessPath, setReadinessPath] = useState('/ready');
+    const [includeIngress, setIncludeIngress] = useState(true);
+    const [ingressHost, setIngressHost] = useState('api.wayantisna.com');
+    const [includeHpa, setIncludeHpa] = useState(false);
+    const [hpaMin, setHpaMin] = useState(2);
+    const [hpaMax, setHpaMax] = useState(6);
+    const [hpaCpuTarget, setHpaCpuTarget] = useState(70);
 
-    const output = useMemo(
-        () => `apiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: ${name}\nspec:\n  replicas: ${replicas}\n  selector:\n    matchLabels:\n      app: ${name}\n  template:\n    metadata:\n      labels:\n        app: ${name}\n    spec:\n      containers:\n        - name: ${name}\n          image: ${image}\n          ports:\n            - containerPort: ${containerPort}\n---\napiVersion: v1\nkind: Service\nmetadata:\n  name: ${name}\nspec:\n  selector:\n    app: ${name}\n  type: ${serviceType}\n  ports:\n    - port: ${servicePort}\n      targetPort: ${containerPort}`,
-        [containerPort, image, name, replicas, servicePort, serviceType],
-    );
+    const output = useMemo(() => {
+        const envRows = envText
+            .split(/\r?\n/)
+            .map((line) => line.trim())
+            .filter(Boolean)
+            .map((line) => {
+                const idx = line.indexOf('=');
+                if (idx <= 0) return null;
+                return { key: line.slice(0, idx).trim(), value: line.slice(idx + 1).trim() };
+            })
+            .filter((item): item is { key: string; value: string } => Boolean(item));
+
+        const envYaml = envRows.length
+            ? `\n          env:\n${envRows.map((env) => `            - name: ${env.key}\n              value: "${env.value.replaceAll('"', '\\"')}"`).join('\n')}`
+            : '';
+        const ingressYaml = includeIngress
+            ? `\n---\napiVersion: networking.k8s.io/v1\nkind: Ingress\nmetadata:\n  name: ${name}\nspec:\n  rules:\n    - host: ${ingressHost}\n      http:\n        paths:\n          - path: /\n            pathType: Prefix\n            backend:\n              service:\n                name: ${name}\n                port:\n                  number: ${servicePort}`
+            : '';
+        const hpaYaml = includeHpa
+            ? `\n---\napiVersion: autoscaling/v2\nkind: HorizontalPodAutoscaler\nmetadata:\n  name: ${name}\nspec:\n  scaleTargetRef:\n    apiVersion: apps/v1\n    kind: Deployment\n    name: ${name}\n  minReplicas: ${hpaMin}\n  maxReplicas: ${hpaMax}\n  metrics:\n    - type: Resource\n      resource:\n        name: cpu\n        target:\n          type: Utilization\n          averageUtilization: ${hpaCpuTarget}`
+            : '';
+
+        return `apiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: ${name}\nspec:\n  replicas: ${replicas}\n  selector:\n    matchLabels:\n      app: ${name}\n  template:\n    metadata:\n      labels:\n        app: ${name}\n    spec:\n      containers:\n        - name: ${name}\n          image: ${image}\n          ports:\n            - containerPort: ${containerPort}${envYaml}\n          resources:\n            requests:\n              cpu: ${cpuRequest}\n              memory: ${memoryRequest}\n            limits:\n              cpu: ${cpuLimit}\n              memory: ${memoryLimit}\n          livenessProbe:\n            httpGet:\n              path: ${livenessPath}\n              port: ${containerPort}\n            initialDelaySeconds: 10\n            periodSeconds: 10\n          readinessProbe:\n            httpGet:\n              path: ${readinessPath}\n              port: ${containerPort}\n            initialDelaySeconds: 5\n            periodSeconds: 5\n---\napiVersion: v1\nkind: Service\nmetadata:\n  name: ${name}\nspec:\n  selector:\n    app: ${name}\n  type: ${serviceType}\n  ports:\n    - port: ${servicePort}\n      targetPort: ${containerPort}${ingressYaml}${hpaYaml}`;
+    }, [containerPort, cpuLimit, cpuRequest, envText, hpaCpuTarget, hpaMax, hpaMin, image, includeHpa, includeIngress, ingressHost, livenessPath, memoryLimit, memoryRequest, name, readinessPath, replicas, servicePort, serviceType]);
 
     return (
         <ToolCard>
@@ -510,7 +692,32 @@ export function KubernetesYamlGeneratorTool() {
                         <option value="LoadBalancer">LoadBalancer</option>
                         <option value="NodePort">NodePort</option>
                     </select>
+                    <input value={cpuRequest} onChange={(e) => setCpuRequest(e.target.value)} className={inputClass} placeholder="CPU request (e.g. 250m)" />
+                    <input value={memoryRequest} onChange={(e) => setMemoryRequest(e.target.value)} className={inputClass} placeholder="Memory request (e.g. 256Mi)" />
+                    <input value={cpuLimit} onChange={(e) => setCpuLimit(e.target.value)} className={inputClass} placeholder="CPU limit (e.g. 1000m)" />
+                    <input value={memoryLimit} onChange={(e) => setMemoryLimit(e.target.value)} className={inputClass} placeholder="Memory limit (e.g. 512Mi)" />
+                    <input value={livenessPath} onChange={(e) => setLivenessPath(e.target.value)} className={inputClass} placeholder="Liveness path" />
+                    <input value={readinessPath} onChange={(e) => setReadinessPath(e.target.value)} className={inputClass} placeholder="Readiness path" />
                 </div>
+                <textarea value={envText} onChange={(e) => setEnvText(e.target.value)} className={`${textAreaClass} h-24`} placeholder="Env vars, one per line (KEY=value)" />
+                <div className="grid gap-2 text-sm md:grid-cols-2">
+                    <label className="inline-flex items-center gap-2">
+                        <input type="checkbox" checked={includeIngress} onChange={(e) => setIncludeIngress(e.target.checked)} className="h-3.5 w-3.5" />
+                        Include ingress
+                    </label>
+                    <label className="inline-flex items-center gap-2">
+                        <input type="checkbox" checked={includeHpa} onChange={(e) => setIncludeHpa(e.target.checked)} className="h-3.5 w-3.5" />
+                        Include HPA
+                    </label>
+                </div>
+                {includeIngress ? <input value={ingressHost} onChange={(e) => setIngressHost(e.target.value)} className={inputClass} placeholder="Ingress host" /> : null}
+                {includeHpa ? (
+                    <div className="grid gap-3 md:grid-cols-3">
+                        <input type="number" min={1} value={hpaMin} onChange={(e) => setHpaMin(Number(e.target.value))} className={inputClass} placeholder="HPA min" />
+                        <input type="number" min={1} value={hpaMax} onChange={(e) => setHpaMax(Number(e.target.value))} className={inputClass} placeholder="HPA max" />
+                        <input type="number" min={10} max={95} value={hpaCpuTarget} onChange={(e) => setHpaCpuTarget(Number(e.target.value))} className={inputClass} placeholder="CPU target %" />
+                    </div>
+                ) : null}
                 <pre className="max-h-96 overflow-auto rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs dark:border-slate-700 dark:bg-slate-900">{output}</pre>
                 <CopyButton value={output} className={compactButtonClass} />
             </div>
@@ -562,33 +769,64 @@ export function WebhookTesterTool() {
     const [method, setMethod] = useState<'POST' | 'PUT' | 'PATCH'>('POST');
     const [headersText, setHeadersText] = useState('{\n  "Content-Type": "application/json"\n}');
     const [bodyText, setBodyText] = useState('{\n  "event": "build.succeeded",\n  "id": "evt_123"\n}');
+    const [retryCount, setRetryCount] = useState(0);
+    const [retryDelayMs, setRetryDelayMs] = useState(150);
+    const [signatureHeader, setSignatureHeader] = useState('x-signature-sha256');
+    const [signatureSecret, setSignatureSecret] = useState('');
     const [loading, setLoading] = useState(false);
     const [report, setReport] = useState<ReportState>({
         level: 'idle',
         title: 'Ready to test webhook',
-        details: ['Configure URL/method/body and send request via server proxy.'],
+        details: ['Supports retries, custom headers, and optional HMAC signature.'],
     });
     const [responsePreview, setResponsePreview] = useState('');
+    const [attemptLogs, setAttemptLogs] = useState<string[]>([]);
 
     const onSend = async () => {
         setLoading(true);
+        setAttemptLogs([]);
         try {
             const parsedHeaders = parseHeadersInput(headersText);
-            const response = await fetch('/api/tools/webhook-test', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ url, method, headers: parsedHeaders, body: bodyText }),
-            });
-            const data = (await response.json()) as Record<string, unknown>;
-            if (!response.ok) throw new Error(String(data.error ?? 'Webhook request failed.'));
+            if (signatureSecret.trim()) {
+                const signature = await hmacSha256Hex(bodyText, signatureSecret.trim());
+                parsedHeaders[signatureHeader] = signature;
+            }
 
-            setResponsePreview(String(data.responseBodyPreview ?? ''));
+            const attempts = Math.max(1, Math.min(6, retryCount + 1));
+            let finalData: Record<string, unknown> | null = null;
+            let finalStatus = 0;
+            let finalStatusText = '';
+            const logs: string[] = [];
+            for (let attempt = 1; attempt <= attempts; attempt += 1) {
+                const response = await fetch('/api/tools/webhook-test', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url, method, headers: parsedHeaders, body: bodyText }),
+                });
+                const data = (await response.json()) as Record<string, unknown>;
+                finalData = data;
+                finalStatus = Number(data.status ?? response.status ?? 0);
+                finalStatusText = String(data.statusText ?? response.statusText ?? '');
+                logs.push(`Attempt ${attempt}: ${finalStatus} ${finalStatusText} in ${String(data.elapsedMs ?? '-')}ms`);
+                if (response.ok && data.ok) {
+                    break;
+                }
+                if (attempt < attempts && retryDelayMs > 0) {
+                    await wait(retryDelayMs);
+                }
+            }
+
+            setAttemptLogs(logs);
+            if (!finalData) throw new Error('Webhook request failed without response.');
+            setResponsePreview(String(finalData.responseBodyPreview ?? ''));
             setReport({
-                level: data.ok ? 'valid' : 'warning',
-                title: `Webhook response: ${data.status ?? '-'} ${String(data.statusText ?? '')}`,
+                level: finalStatus >= 200 && finalStatus < 300 ? 'valid' : finalStatus >= 500 ? 'error' : 'warning',
+                title: `Webhook response: ${finalStatus} ${finalStatusText}`,
                 details: [
-                    `Elapsed: ${String(data.elapsedMs ?? '-')} ms`,
-                    `Body bytes: ${String(data.responseBodyBytes ?? '-')}`,
+                    `Attempts: ${logs.length}`,
+                    `Elapsed (last): ${String(finalData.elapsedMs ?? '-')} ms`,
+                    `Body bytes: ${String(finalData.responseBodyBytes ?? '-')}`,
+                    signatureSecret.trim() ? `Signature header: ${signatureHeader}` : 'Signature: disabled',
                 ],
             });
         } catch (error) {
@@ -618,12 +856,28 @@ export function WebhookTesterTool() {
                     <textarea value={headersText} onChange={(e) => setHeadersText(e.target.value)} className={`${textAreaClass} h-28`} placeholder="Headers JSON" />
                     <textarea value={bodyText} onChange={(e) => setBodyText(e.target.value)} className={`${textAreaClass} h-28`} placeholder="Body" />
                 </div>
+                <div className="grid gap-3 md:grid-cols-2">
+                    <input type="number" min={0} max={5} value={retryCount} onChange={(e) => setRetryCount(Number(e.target.value))} className={inputClass} placeholder="Retries" />
+                    <input type="number" min={0} max={5000} value={retryDelayMs} onChange={(e) => setRetryDelayMs(Number(e.target.value))} className={inputClass} placeholder="Retry delay (ms)" />
+                    <input value={signatureHeader} onChange={(e) => setSignatureHeader(e.target.value)} className={inputClass} placeholder="Signature header name" />
+                    <input value={signatureSecret} onChange={(e) => setSignatureSecret(e.target.value)} className={inputClass} placeholder="Signature secret (optional)" />
+                </div>
 
                 <Button size="sm" className={compactButtonClass} onClick={onSend} disabled={loading}>
                     <Webhook className="h-3.5 w-3.5" />
                     {loading ? 'Sending...' : 'Send Webhook'}
                 </Button>
                 <ReportBox report={report} />
+                {attemptLogs.length > 0 ? (
+                    <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">
+                        <p className="mb-1 font-semibold">Attempt Logs</p>
+                        <ul className="space-y-1">
+                            {attemptLogs.map((item) => (
+                                <li key={item}>- {item}</li>
+                            ))}
+                        </ul>
+                    </div>
+                ) : null}
                 <div className="space-y-2">
                     <SectionLabel>Response Preview</SectionLabel>
                     <pre className="max-h-64 overflow-auto rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs dark:border-slate-700 dark:bg-slate-900">{responsePreview || 'No response yet.'}</pre>
@@ -637,6 +891,9 @@ type OpenApiEndpoint = {
     method: string;
     path: string;
     summary: string;
+    operationId: string;
+    tags: string[];
+    secured: boolean;
 };
 
 export function OpenApiSwaggerEditorTool() {
@@ -644,48 +901,70 @@ export function OpenApiSwaggerEditorTool() {
     const [report, setReport] = useState<ReportState>({
         level: 'idle',
         title: 'Ready to parse OpenAPI',
-        details: ['Paste OpenAPI JSON and click analyze.'],
+        details: ['Paste OpenAPI JSON, analyze endpoints, and lint for missing metadata.'],
     });
     const [endpoints, setEndpoints] = useState<OpenApiEndpoint[]>([]);
+    const [warnings, setWarnings] = useState<string[]>([]);
+    const [selectedEndpoint, setSelectedEndpoint] = useState('');
+    const [filterText, setFilterText] = useState('');
     const [curlSnippet, setCurlSnippet] = useState('');
 
     const onAnalyze = () => {
         try {
             const doc = JSON.parse(source) as {
                 openapi?: string;
-                info?: { title?: string; version?: string };
-                paths?: Record<string, Record<string, { summary?: string }>>;
+                info?: { title?: string; version?: string; description?: string };
+                paths?: Record<string, Record<string, { summary?: string; operationId?: string; tags?: string[]; security?: unknown[] }>>;
+                servers?: Array<{ url?: string }>;
             };
 
             const items: OpenApiEndpoint[] = [];
+            const lintWarnings: string[] = [];
             Object.entries(doc.paths ?? {}).forEach(([path, methods]) => {
                 Object.entries(methods ?? {}).forEach(([method, meta]) => {
+                    const operationId = meta?.operationId ?? '';
+                    const tags = Array.isArray(meta?.tags) ? meta.tags.filter(Boolean) : [];
+                    const secured = Array.isArray(meta?.security) && meta.security.length > 0;
+                    if (!meta?.summary) lintWarnings.push(`${method.toUpperCase()} ${path}: missing summary`);
+                    if (!operationId) lintWarnings.push(`${method.toUpperCase()} ${path}: missing operationId`);
+                    if (tags.length === 0) lintWarnings.push(`${method.toUpperCase()} ${path}: missing tags`);
                     items.push({
                         path,
                         method: method.toUpperCase(),
                         summary: meta?.summary ?? '',
+                        operationId,
+                        tags,
+                        secured,
                     });
                 });
             });
 
             setEndpoints(items);
+            setWarnings(lintWarnings.slice(0, 25));
             if (items[0]) {
-                setCurlSnippet(`curl -X ${items[0].method} https://api.example.com${items[0].path} -H "Authorization: Bearer <token>"`);
+                const server = doc.servers?.[0]?.url ?? 'https://api.example.com';
+                const first = items[0];
+                const sampleCurl = `curl -X ${first.method} ${server}${first.path} -H "Authorization: Bearer <token>" -H "Content-Type: application/json"`;
+                setSelectedEndpoint(`${first.method} ${first.path}`);
+                setCurlSnippet(sampleCurl);
             } else {
+                setSelectedEndpoint('');
                 setCurlSnippet('');
             }
 
             setReport({
-                level: 'valid',
+                level: lintWarnings.length > 0 ? 'warning' : 'valid',
                 title: 'OpenAPI parsed successfully',
                 details: [
                     `Spec version: ${doc.openapi ?? 'n/a'}`,
                     `Title: ${doc.info?.title ?? 'n/a'}`,
                     `Endpoints: ${items.length}`,
+                    `Lint warnings: ${lintWarnings.length}`,
                 ],
             });
         } catch (error) {
             setEndpoints([]);
+            setWarnings([]);
             setCurlSnippet('');
             setReport({
                 level: 'error',
@@ -693,6 +972,20 @@ export function OpenApiSwaggerEditorTool() {
                 details: [error instanceof Error ? error.message : 'Invalid JSON format'],
             });
         }
+    };
+
+    const filteredEndpoints = useMemo(() => {
+        const q = filterText.trim().toLowerCase();
+        if (!q) return endpoints;
+        return endpoints.filter((endpoint) => `${endpoint.method} ${endpoint.path} ${endpoint.summary} ${endpoint.tags.join(' ')}`.toLowerCase().includes(q));
+    }, [endpoints, filterText]);
+
+    const onSelectEndpoint = (value: string) => {
+        setSelectedEndpoint(value);
+        const [method, ...pathParts] = value.split(' ');
+        const path = pathParts.join(' ');
+        if (!method || !path) return;
+        setCurlSnippet(`curl -X ${method} https://api.example.com${path} -H "Authorization: Bearer <token>" -H "Content-Type: application/json"`);
     };
 
     return (
@@ -707,6 +1000,19 @@ export function OpenApiSwaggerEditorTool() {
 
                 {endpoints.length > 0 ? (
                     <div className="space-y-2">
+                        <div className="grid gap-2 md:grid-cols-[minmax(0,1fr)_260px]">
+                            <input value={filterText} onChange={(e) => setFilterText(e.target.value)} className={inputClass} placeholder="Filter endpoints by method/path/tag..." />
+                            <select value={selectedEndpoint} onChange={(e) => onSelectEndpoint(e.target.value)} className={inputClass}>
+                                {endpoints.map((item) => {
+                                    const value = `${item.method} ${item.path}`;
+                                    return (
+                                        <option key={value} value={value}>
+                                            {value}
+                                        </option>
+                                    );
+                                })}
+                            </select>
+                        </div>
                         <SectionLabel>Endpoints</SectionLabel>
                         <div className="max-h-56 overflow-auto rounded-xl border border-slate-200 dark:border-slate-700">
                             <table className="w-full text-left text-xs">
@@ -715,19 +1021,34 @@ export function OpenApiSwaggerEditorTool() {
                                         <th className="px-2 py-2">Method</th>
                                         <th className="px-2 py-2">Path</th>
                                         <th className="px-2 py-2">Summary</th>
+                                        <th className="px-2 py-2">Tags</th>
+                                        <th className="px-2 py-2">Secured</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {endpoints.map((item) => (
+                                    {filteredEndpoints.map((item) => (
                                         <tr key={`${item.method}-${item.path}`} className="border-t border-slate-200 dark:border-slate-700">
                                             <td className="px-2 py-1.5">{item.method}</td>
                                             <td className="px-2 py-1.5">{item.path}</td>
                                             <td className="px-2 py-1.5">{item.summary || '-'}</td>
+                                            <td className="px-2 py-1.5">{item.tags.length > 0 ? item.tags.join(', ') : '-'}</td>
+                                            <td className="px-2 py-1.5">{item.secured ? 'Yes' : 'No'}</td>
                                         </tr>
                                     ))}
                                 </tbody>
                             </table>
                         </div>
+                    </div>
+                ) : null}
+
+                {warnings.length > 0 ? (
+                    <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800 dark:border-amber-900/80 dark:bg-amber-950/40 dark:text-amber-200">
+                        <p className="mb-1 font-semibold">Lint Warnings</p>
+                        <ul className="space-y-1">
+                            {warnings.map((warning) => (
+                                <li key={warning}>- {warning}</li>
+                            ))}
+                        </ul>
                     </div>
                 ) : null}
 
