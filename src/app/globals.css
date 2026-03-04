@@ -174,11 +174,6 @@ body::before {
 
 .blog-article pre {
   margin: 0;
-  border: 1px solid rgb(203 213 225 / 90%);
-  border-radius: 0.9rem;
-  background: #ffffff;
-  color: #0f172a;
-  box-shadow: 0 1px 2px rgb(15 23 42 / 5%);
 }
 
 .blog-article :not(pre)>code {
@@ -190,11 +185,6 @@ body::before {
 
 .blog-article figure.shiki {
   margin: 1.25rem 0;
-  border: 1px solid rgb(203 213 225 / 90%);
-  border-radius: 0.9rem;
-  background: #ffffff !important;
-  box-shadow: 0 1px 2px rgb(15 23 42 / 5%);
-  overflow: hidden;
 }
 
 .blog-article table {
@@ -254,20 +244,9 @@ body::before {
   background: rgb(15 23 42 / 35%);
 }
 
-.dark .blog-article pre {
-  border-color: rgb(51 65 85 / 85%);
-  background: rgb(2 6 23 / 96%);
-  color: #e2e8f0;
-}
-
 .dark .blog-article :not(pre)>code {
   background: rgb(15 23 42 / 88%);
   color: #d7f2ff;
-}
-
-.dark .blog-article figure.shiki {
-  border-color: rgb(51 65 85 / 85%);
-  background: rgb(2 6 23 / 96%) !important;
 }
 
 .dark .blog-article table {

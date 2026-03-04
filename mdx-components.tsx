@@ -9,7 +9,7 @@ import type { HTMLAttributes, ImgHTMLAttributes } from 'react';
 export function getMDXComponents(components?: MDXComponents): MDXComponents {
     const enhancedComponents: MDXComponents = {
         pre: (props: HTMLAttributes<HTMLPreElement>) => (
-            <CodeBlock {...props}>
+            <CodeBlock keepBackground {...props}>
                 <Pre>{props.children}</Pre>
             </CodeBlock>
         ),
