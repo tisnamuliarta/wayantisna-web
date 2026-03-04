@@ -4,7 +4,7 @@ import { ArrowRight, BriefcaseBusiness, FileText, Sparkles } from "lucide-react"
 import Link from "next/link";
 
 const metrics = [
-    { label: "Professional Experience", value: "6++ Years" },
+    { label: "Professional Experience", value: "7 Years" },
     { label: "Primary Stack", value: "Laravel + Vue/Nuxt" },
     { label: "Modern Frontend", value: "React + Next.js" },
     { label: "API Focus", value: "REST API Architecture" },
@@ -28,9 +28,9 @@ export function HeroSection() {
                     </h1>
 
                     <p className="max-w-2xl text-pretty text-base leading-relaxed text-slate-700 md:text-lg dark:text-slate-300">
-                        I am {profile.fullName}, a middle to senior software developer with 6++ years of experience delivering reliable web
-                        applications. I specialize in Laravel backend engineering, REST API architecture, SQL Server performance optimization,
-                        and modern frontend development with Vue.js, Nuxt.js, React.js, and Next.js.
+                        I am {profile.fullName}, a software developer with 7 years of experience delivering reliable web applications.
+                        I specialize in Laravel backend engineering, REST API architecture, SQL Server performance optimization, and modern
+                        frontend development with Vue.js, Nuxt.js, React.js, and Next.js.
                     </p>
 
                     <div className="flex flex-wrap gap-3">

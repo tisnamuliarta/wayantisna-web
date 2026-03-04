@@ -1,5 +1,5 @@
 import { profile, skills } from "@/lib/utils";
-import { Code2, Database, Layers3 } from "lucide-react";
+import { Code2, Database, Layers3, Workflow } from "lucide-react";
 
 const skillCards = [
     {
@@ -23,6 +23,13 @@ const skillCards = [
         border: "border-amber-200/80 dark:border-amber-900/50",
         data: skills.database,
     },
+    {
+        title: "DevOps Workflow",
+        icon: Workflow,
+        palette: "from-violet-100 to-white dark:from-violet-950 dark:to-slate-950",
+        border: "border-violet-200/80 dark:border-violet-900/50",
+        data: skills.devops,
+    },
 ];
 
 export function AboutSection() {
@@ -39,17 +46,17 @@ export function AboutSection() {
                 </div>
                 <div className="space-y-4 rounded-3xl border border-slate-200 bg-white/80 p-6 text-sm leading-relaxed text-slate-700 shadow-sm dark:border-slate-800 dark:bg-slate-950/70 dark:text-slate-300">
                     <p>
-                        {profile.shortName} is a middle to senior software developer with {profile.yearsExperience} of practical experience
+                        {profile.shortName} is a software developer with {profile.yearsExperience} of practical experience
                         building production web systems from API layer to frontend interface.
                     </p>
                     <p>
-                        Strong execution in Laravel, REST API design, SQL Server tuning, and frontend architecture with Vue.js/Nuxt.js and
-                        React.js/Next.js. Delivery style prioritizes predictable releases, clean code, and measurable performance.
+                        Strong execution in Laravel, REST API design, SQL Server tuning, containerized development with Docker and Kubernetes,
+                        CI/CD with GitLab, and frontend architecture with Vue.js/Nuxt.js and React.js/Next.js.
                     </p>
                 </div>
             </div>
 
-            <div className="grid gap-5 md:grid-cols-3">
+            <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
                 {skillCards.map((card) => {
                     const Icon = card.icon;
                     return (
