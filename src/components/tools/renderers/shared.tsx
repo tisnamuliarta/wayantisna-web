@@ -1,6 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 import { Copy } from 'lucide-react';
 import { useState } from 'react';
 
@@ -12,7 +13,7 @@ export function SectionLabel({ children }: { children: React.ReactNode }) {
     return <p className="mb-2 text-sm font-medium text-slate-700 dark:text-slate-200">{children}</p>;
 }
 
-export function CopyButton({ value }: { value: string }) {
+export function CopyButton({ value, className }: { value: string; className?: string }) {
     const [copied, setCopied] = useState(false);
 
     const onCopy = async () => {
@@ -22,7 +23,7 @@ export function CopyButton({ value }: { value: string }) {
     };
 
     return (
-        <Button type="button" variant="outline" size="sm" onClick={onCopy}>
+        <Button type="button" variant="outline" size="sm" onClick={onCopy} className={cn(className)}>
             <Copy className="mr-1.5 h-3.5 w-3.5" />
             {copied ? 'Copied' : 'Copy'}
         </Button>

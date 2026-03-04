@@ -146,7 +146,7 @@ export function UuidTool() {
                     <Button size="sm" className={compactButtonClass} variant="outline" onClick={() => setOutput([])}>
                         Clear
                     </Button>
-                    {output.length > 0 ? <CopyButton value={outputText} /> : null}
+                    {output.length > 0 ? <CopyButton value={outputText} className={compactButtonClass} /> : null}
                 </div>
 
                 {error ? (
@@ -276,7 +276,7 @@ export function PasswordTool() {
                     <Button size="sm" className={compactButtonClass} variant="outline" onClick={() => setPasswords([])}>
                         Clear
                     </Button>
-                    {passwords.length > 0 ? <CopyButton value={outputText} /> : null}
+                    {passwords.length > 0 ? <CopyButton value={outputText} className={compactButtonClass} /> : null}
                 </div>
 
                 <textarea value={outputText} readOnly placeholder="Generated passwords will appear here." className="h-56 w-full rounded-xl border border-slate-300 bg-white p-3 font-mono text-xs dark:border-slate-700 dark:bg-slate-900" />
@@ -359,7 +359,7 @@ export function QrCodeTool() {
                 </div>
 
                 <div className="flex flex-wrap gap-2">
-                    <CopyButton value={text} />
+                    <CopyButton value={text} className={compactButtonClass} />
                     <a href={src} download={`qr-code.${format}`} target="_blank" rel="noreferrer">
                         <Button size="sm" className={compactButtonClass} variant="outline">
                             <Download className="h-3.5 w-3.5" />
@@ -478,7 +478,7 @@ export function LoremTool() {
                         <RefreshCcw className="h-3.5 w-3.5" />
                         Clear
                     </Button>
-                    {output ? <CopyButton value={output} /> : null}
+                    {output ? <CopyButton value={output} className={compactButtonClass} /> : null}
                 </div>
 
                 <textarea value={output} readOnly className="h-64 w-full rounded-xl border border-slate-300 bg-white p-3 text-sm dark:border-slate-700 dark:bg-slate-900" placeholder="Generated text appears here." />
