@@ -112,7 +112,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                         <InlineTOC
                             items={tocItems}
                             defaultOpen
-                            className="border-fd-border bg-fd-card text-fd-foreground"
+                            className="border-slate-200 bg-white text-slate-700 dark:border-fd-border dark:bg-fd-card dark:text-fd-foreground"
                         />
                     </div>
 
@@ -126,11 +126,11 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                         <InlineTOC
                             items={tocItems}
                             defaultOpen
-                            className="max-h-[52vh] overflow-y-auto border-fd-border bg-fd-card pr-1 text-fd-foreground"
+                            className="max-h-[52vh] overflow-y-auto border-slate-200 bg-white pr-1 text-slate-700 dark:border-fd-border dark:bg-fd-card dark:text-fd-foreground"
                         />
-                        <AdBanner className="rounded-2xl border border-fd-border bg-fd-card p-3" />
-                        <div className="rounded-2xl border border-fd-border bg-fd-card p-4">
-                            <p className="mb-3 text-sm font-semibold text-fd-foreground">Share this post</p>
+                        <AdBanner className="rounded-2xl border border-slate-200 bg-white p-3 dark:border-fd-border dark:bg-fd-card" />
+                        <div className="rounded-2xl border border-slate-200 bg-white p-4 dark:border-fd-border dark:bg-fd-card">
+                            <p className="mb-3 text-sm font-semibold text-slate-900 dark:text-fd-foreground">Share this post</p>
                             <ShareButtons title={shareTitle} url={shareUrl} />
                         </div>
                     </div>

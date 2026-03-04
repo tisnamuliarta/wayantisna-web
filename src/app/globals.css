@@ -134,7 +134,7 @@ body::before {
   margin-bottom: 1rem;
   font-size: 2rem;
   font-weight: 650;
-  color: #0f172a;
+  color: #0f172a !important;
 }
 
 .blog-article h3 {
@@ -142,7 +142,14 @@ body::before {
   margin-bottom: 0.8rem;
   font-size: 1.5rem;
   font-weight: 600;
-  color: #0f172a;
+  color: #0f172a !important;
+}
+
+.blog-article h1,
+.blog-article h4,
+.blog-article h5,
+.blog-article h6 {
+  color: #0f172a !important;
 }
 
 .blog-article p {
@@ -224,7 +231,14 @@ body::before {
 
 .dark .blog-article h2,
 .dark .blog-article h3 {
-  color: #f8fbff;
+  color: #f8fbff !important;
+}
+
+.dark .blog-article h1,
+.dark .blog-article h4,
+.dark .blog-article h5,
+.dark .blog-article h6 {
+  color: #f8fbff !important;
 }
 
 .dark .blog-article p {
