@@ -1209,6 +1209,10 @@ export function HtaccessGeneratorTool() {
     const [removeWww, setRemoveWww] = useState(false);
     const [gzip, setGzip] = useState(true);
     const [disableListing, setDisableListing] = useState(true);
+    const [securityHeaders, setSecurityHeaders] = useState(true);
+    const [cacheStaticAssets, setCacheStaticAssets] = useState(true);
+    const [blockHotlinking, setBlockHotlinking] = useState(false);
+    const [errorDocument404, setErrorDocument404] = useState('/404.html');
 
     const output = useMemo(() => {
         const lines: string[] = ['# Generated .htaccess'];
@@ -1222,17 +1226,71 @@ export function HtaccessGeneratorTool() {
         if (gzip) {
             lines.push('<IfModule mod_deflate.c>', '  AddOutputFilterByType DEFLATE text/html text/plain text/css application/javascript application/json', '</IfModule>');
         }
+        if (securityHeaders) {
+            lines.push(
+                '<IfModule mod_headers.c>',
+                '  Header always set X-Content-Type-Options "nosniff"',
+                '  Header always set X-Frame-Options "SAMEORIGIN"',
+                '  Header always set Referrer-Policy "strict-origin-when-cross-origin"',
+                '  Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"',
+                '</IfModule>',
+            );
+        }
+        if (cacheStaticAssets) {
+            lines.push(
+                '<IfModule mod_expires.c>',
+                '  ExpiresActive On',
+                '  ExpiresByType text/css "access plus 30 days"',
+                '  ExpiresByType application/javascript "access plus 30 days"',
+                '  ExpiresByType image/jpeg "access plus 180 days"',
+                '  ExpiresByType image/png "access plus 180 days"',
+                '  ExpiresByType image/webp "access plus 180 days"',
+                '</IfModule>',
+            );
+        }
+        if (blockHotlinking) {
+            lines.push(
+                'RewriteCond %{HTTP_REFERER} !^$ [NC]',
+                'RewriteCond %{HTTP_REFERER} !^https?://(www\\.)?your-domain\\.com [NC]',
+                'RewriteRule \\.(jpg|jpeg|png|gif|webp)$ - [F,NC,L]',
+            );
+        }
+        if (errorDocument404.trim()) {
+            lines.push(`ErrorDocument 404 ${errorDocument404.trim()}`);
+        }
         return lines.join('\n');
-    }, [disableListing, forceHttps, gzip, removeWww]);
+    }, [blockHotlinking, cacheStaticAssets, disableListing, errorDocument404, forceHttps, gzip, removeWww, securityHeaders]);
+
+    const enabledRules = [
+        forceHttps,
+        removeWww,
+        gzip,
+        disableListing,
+        securityHeaders,
+        cacheStaticAssets,
+        blockHotlinking,
+        Boolean(errorDocument404.trim()),
+    ].filter(Boolean).length;
 
     return (
         <ToolCard>
             <div className="space-y-4">
-                <div className="grid gap-2 text-sm">
+                <div className="grid gap-2 text-sm sm:grid-cols-2">
                     <label><input type="checkbox" checked={forceHttps} onChange={(e) => setForceHttps(e.target.checked)} className="mr-2" />Force HTTPS</label>
                     <label><input type="checkbox" checked={removeWww} onChange={(e) => setRemoveWww(e.target.checked)} className="mr-2" />Redirect www to apex</label>
                     <label><input type="checkbox" checked={gzip} onChange={(e) => setGzip(e.target.checked)} className="mr-2" />Enable gzip</label>
                     <label><input type="checkbox" checked={disableListing} onChange={(e) => setDisableListing(e.target.checked)} className="mr-2" />Disable directory listing</label>
+                    <label><input type="checkbox" checked={securityHeaders} onChange={(e) => setSecurityHeaders(e.target.checked)} className="mr-2" />Security headers</label>
+                    <label><input type="checkbox" checked={cacheStaticAssets} onChange={(e) => setCacheStaticAssets(e.target.checked)} className="mr-2" />Cache static assets</label>
+                    <label><input type="checkbox" checked={blockHotlinking} onChange={(e) => setBlockHotlinking(e.target.checked)} className="mr-2" />Block image hotlinking</label>
+                </div>
+                <label className="text-sm">
+                    <SectionLabel>Custom 404 Path</SectionLabel>
+                    <input value={errorDocument404} onChange={(e) => setErrorDocument404(e.target.value)} className={inputClass} placeholder="/404.html" />
+                </label>
+                <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs dark:border-slate-700 dark:bg-slate-900">
+                    <p>Enabled rules: {enabledRules}</p>
+                    <p>Tip: replace <code>your-domain.com</code> in hotlinking rule before production use.</p>
                 </div>
                 <pre className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs dark:border-slate-700 dark:bg-slate-900">{output}</pre>
                 <CopyButton value={output} className={compactButtonClass} />

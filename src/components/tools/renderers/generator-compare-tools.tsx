@@ -553,41 +553,131 @@ export function CodeDiffTool() {
 }
 
 export function JsonDiffTool() {
-    const [left, setLeft] = useState('{"name":"Wayan","skills":["Laravel","React"]}');
-    const [right, setRight] = useState('{"name":"Wayan Tisna","skills":["Laravel","Next.js"]}');
+    const sampleLeft = '{\n  "name": "Wayan",\n  "skills": ["Laravel", "React"],\n  "profile": {\n    "active": true,\n    "role": "developer"\n  }\n}';
+    const sampleRight = '{\n  "name": "Wayan Tisna",\n  "skills": ["Laravel", "Next.js"],\n  "profile": {\n    "active": true,\n    "role": "senior developer"\n  },\n  "location": "Bali"\n}';
+
+    const [left, setLeft] = useState(sampleLeft);
+    const [right, setRight] = useState(sampleRight);
+
     const result = useMemo(() => {
         try {
+            const parsedLeft = JSON.parse(left);
+            const parsedRight = JSON.parse(right);
+            const leftKeys = parsedLeft && typeof parsedLeft === 'object' ? Object.keys(parsedLeft as Record<string, unknown>).length : 0;
+            const rightKeys = parsedRight && typeof parsedRight === 'object' ? Object.keys(parsedRight as Record<string, unknown>).length : 0;
             return {
                 error: '',
-                diffs: compareJson(JSON.parse(left), JSON.parse(right)),
+                leftPretty: JSON.stringify(parsedLeft, null, 2),
+                rightPretty: JSON.stringify(parsedRight, null, 2),
+                leftKeys,
+                rightKeys,
+                diffs: compareJson(parsedLeft, parsedRight),
             };
         } catch (err) {
             return {
                 error: err instanceof Error ? err.message : 'Invalid JSON',
+                leftPretty: '',
+                rightPretty: '',
+                leftKeys: 0,
+                rightKeys: 0,
                 diffs: [] as ReturnType<typeof compareJson>,
             };
         }
     }, [left, right]);
 
+    const summary = useMemo(() => {
+        const changed = result.diffs.length;
+        const added = result.diffs.filter((item) => typeof item.left === 'undefined' && typeof item.right !== 'undefined').length;
+        const removed = result.diffs.filter((item) => typeof item.left !== 'undefined' && typeof item.right === 'undefined').length;
+        const updated = Math.max(0, changed - added - removed);
+        return { changed, added, removed, updated };
+    }, [result.diffs]);
+
     return (
         <ToolCard>
-            <div className="grid gap-3 md:grid-cols-2">
-                <textarea value={left} onChange={(e) => setLeft(e.target.value)} className="h-44 w-full rounded-lg border border-slate-300 bg-white p-3 text-sm dark:border-slate-700 dark:bg-slate-900" />
-                <textarea value={right} onChange={(e) => setRight(e.target.value)} className="h-44 w-full rounded-lg border border-slate-300 bg-white p-3 text-sm dark:border-slate-700 dark:bg-slate-900" />
-            </div>
-            {result.error ? (
-                <p className="mt-3 text-sm text-red-600">{result.error}</p>
-            ) : (
-                <div className="mt-4 space-y-2 text-sm">
-                    {result.diffs.length === 0 ? <p className="text-emerald-600">No differences.</p> : result.diffs.map((diff) => (
-                        <div key={diff.path} className="rounded-lg border border-slate-200 bg-slate-50 p-2 dark:border-slate-800 dark:bg-slate-900">
-                            <p className="font-medium">{diff.path}</p>
-                            <p className="text-xs text-slate-600 dark:text-slate-300">Left: {JSON.stringify(diff.left)}</p>
-                            <p className="text-xs text-slate-600 dark:text-slate-300">Right: {JSON.stringify(diff.right)}</p>
-                        </div>
-                    ))}
+            <div className="space-y-4">
+                <div className="flex flex-wrap gap-2">
+                    <Button size="sm" className={compactButtonClass} onClick={() => { setLeft(sampleLeft); setRight(sampleRight); }}>
+                        <FileText className="h-3.5 w-3.5" />
+                        Sample
+                    </Button>
+                    <Button size="sm" className={compactButtonClass} variant="outline" onClick={() => { setLeft(''); setRight(''); }}>
+                        Clear
+                    </Button>
                 </div>
-            )}
+
+                <div className="grid gap-3 md:grid-cols-2">
+                    <label className="text-sm">
+                        <SectionLabel>Left JSON</SectionLabel>
+                        <textarea value={left} onChange={(e) => setLeft(e.target.value)} className="h-52 w-full rounded-lg border border-slate-300 bg-white p-3 text-sm dark:border-slate-700 dark:bg-slate-900" />
+                    </label>
+                    <label className="text-sm">
+                        <SectionLabel>Right JSON</SectionLabel>
+                        <textarea value={right} onChange={(e) => setRight(e.target.value)} className="h-52 w-full rounded-lg border border-slate-300 bg-white p-3 text-sm dark:border-slate-700 dark:bg-slate-900" />
+                    </label>
+                </div>
+
+                {result.error ? (
+                    <p className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-900/80 dark:bg-red-950/40 dark:text-red-200">{result.error}</p>
+                ) : (
+                    <>
+                        <div className="grid gap-2 rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs dark:border-slate-700 dark:bg-slate-900 sm:grid-cols-3 lg:grid-cols-6">
+                            <p>Left keys: {result.leftKeys}</p>
+                            <p>Right keys: {result.rightKeys}</p>
+                            <p>Total changed: {summary.changed}</p>
+                            <p className="text-emerald-700 dark:text-emerald-300">Added: {summary.added}</p>
+                            <p className="text-amber-700 dark:text-amber-300">Updated: {summary.updated}</p>
+                            <p className="text-red-700 dark:text-red-300">Removed: {summary.removed}</p>
+                        </div>
+
+                        <div className="space-y-2 text-sm">
+                            {result.diffs.length === 0 ? (
+                                <p className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-emerald-700 dark:border-emerald-900/80 dark:bg-emerald-950/40 dark:text-emerald-200">
+                                    No differences detected.
+                                </p>
+                            ) : (
+                                result.diffs.map((diff) => {
+                                    const isAdded = typeof diff.left === 'undefined' && typeof diff.right !== 'undefined';
+                                    const isRemoved = typeof diff.left !== 'undefined' && typeof diff.right === 'undefined';
+                                    const tone = isAdded
+                                        ? 'border-emerald-200 bg-emerald-50 dark:border-emerald-900/80 dark:bg-emerald-950/30'
+                                        : isRemoved
+                                            ? 'border-red-200 bg-red-50 dark:border-red-900/80 dark:bg-red-950/30'
+                                            : 'border-amber-200 bg-amber-50 dark:border-amber-900/80 dark:bg-amber-950/30';
+
+                                    return (
+                                        <div key={diff.path} className={`rounded-lg border p-3 ${tone}`}>
+                                            <p className="font-semibold text-slate-800 dark:text-slate-100">{diff.path}</p>
+                                            <p className="mt-1 text-[11px] uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                                                {isAdded ? 'Added' : isRemoved ? 'Removed' : 'Updated'}
+                                            </p>
+                                            <p className="mt-2 text-xs text-slate-700 dark:text-slate-200">Left: {JSON.stringify(diff.left)}</p>
+                                            <p className="text-xs text-slate-700 dark:text-slate-200">Right: {JSON.stringify(diff.right)}</p>
+                                        </div>
+                                    );
+                                })
+                            )}
+                        </div>
+
+                        <div className="grid gap-3 md:grid-cols-2">
+                            <div className="space-y-2">
+                                <SectionLabel>Left (normalized)</SectionLabel>
+                                <pre className="max-h-48 overflow-auto rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs dark:border-slate-700 dark:bg-slate-900">
+                                    {result.leftPretty}
+                                </pre>
+                            </div>
+                            <div className="space-y-2">
+                                <SectionLabel>Right (normalized)</SectionLabel>
+                                <pre className="max-h-48 overflow-auto rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs dark:border-slate-700 dark:bg-slate-900">
+                                    {result.rightPretty}
+                                </pre>
+                            </div>
+                        </div>
+                    </>
+                )}
+
+                {!result.error && result.diffs.length > 0 ? <CopyButton value={JSON.stringify(result.diffs, null, 2)} className={compactButtonClass} /> : null}
+            </div>
         </ToolCard>
     );
 }

@@ -46,8 +46,8 @@ function normalizeSplitInput(value: string, separator: 'newline' | 'csv', preser
         separator === 'newline'
             ? value.split(/\r?\n/)
             : value
-                  .split(',')
-                  .map((item) => item.trim());
+                .split(',')
+                .map((item) => item.trim());
     return preserveEmpty ? rows : rows.filter((item) => item.length > 0);
 }
 
@@ -304,8 +304,8 @@ export function Base64Tool() {
                                         ? 'Paste multiple plain values (one per line or comma separated)'
                                         : 'Paste multiple Base64 values (one per line or comma separated)'
                                     : mode === 'encode'
-                                      ? 'Paste plain text'
-                                      : 'Paste Base64 string'
+                                        ? 'Paste plain text'
+                                        : 'Paste Base64 string'
                             }
                         />
                     </div>
@@ -516,8 +516,8 @@ export function UrlTool() {
                                         ? 'Paste one URL/value per line'
                                         : 'Paste one encoded value per line'
                                     : mode === 'encode'
-                                      ? 'Paste raw URL string or query value'
-                                      : 'Paste encoded URL value'
+                                        ? 'Paste raw URL string or query value'
+                                        : 'Paste encoded URL value'
                             }
                         />
                     </div>
@@ -897,6 +897,18 @@ export function JwtTool() {
 }
 
 export function RegexTesterTool() {
+    const supportedFlags = ['d', 'g', 'i', 'm', 's', 'u', 'v', 'y'];
+    const flagDescriptions: Record<string, string> = {
+        d: 'indices',
+        g: 'global',
+        i: 'ignore case',
+        m: 'multiline',
+        s: 'dotAll',
+        u: 'unicode',
+        v: 'unicode sets',
+        y: 'sticky',
+    };
+
     const [pattern, setPattern] = useState('\\b\\w{4}\\b');
     const [flags, setFlags] = useState('g');
     const [text, setText] = useState('This regex finds four word letters in this sentence.');
@@ -927,20 +939,74 @@ export function RegexTesterTool() {
         setTestCases('2d931510-d99f-494a-8c67-87feb05e1594 => true\ninvalid-uuid => false');
     };
 
+    const toggleFlag = (nextFlag: string) => {
+        setFlags((prev) => {
+            const next = new Set(prev.split(''));
+            if (next.has(nextFlag)) {
+                next.delete(nextFlag);
+            } else {
+                next.add(nextFlag);
+            }
+            return Array.from(next)
+                .filter((item) => supportedFlags.includes(item))
+                .sort((a, b) => supportedFlags.indexOf(a) - supportedFlags.indexOf(b))
+                .join('');
+        });
+    };
+
     const result = useMemo(() => {
         try {
-            const regex = new RegExp(pattern, flags);
-            const matchRegex = new RegExp(pattern, flags.includes('g') ? flags : `${flags}g`);
-            const matches = Array.from(text.matchAll(matchRegex)).slice(0, 300).map((match) => ({
-                value: match[0],
-                index: match.index ?? 0,
-                groups: match.slice(1).filter(Boolean),
-                namedGroups: match.groups ? Object.entries(match.groups).map(([k, v]) => `${k}=${String(v)}`) : [],
-            }));
+            const normalizedFlags = Array.from(new Set(flags.split('')))
+                .filter((item) => supportedFlags.includes(item))
+                .sort((a, b) => supportedFlags.indexOf(a) - supportedFlags.indexOf(b))
+                .join('');
+            const regex = new RegExp(pattern, normalizedFlags);
+            const matchFlags = normalizedFlags.includes('g') ? normalizedFlags : `${normalizedFlags}g`;
+            const matchRegex = new RegExp(pattern, matchFlags);
+
+            const matches: Array<{
+                value: string;
+                index: number;
+                groups: string[];
+                namedGroups: string[];
+            }> = [];
+
+            let guard = 0;
+            let exec = matchRegex.exec(text);
+            while (exec && guard < 500) {
+                matches.push({
+                    value: exec[0],
+                    index: exec.index ?? 0,
+                    groups: exec.slice(1).filter(Boolean),
+                    namedGroups: exec.groups ? Object.entries(exec.groups).map(([k, v]) => `${k}=${String(v)}`) : [],
+                });
+                if (exec[0] === '') {
+                    matchRegex.lastIndex += 1;
+                }
+                exec = matchRegex.exec(text);
+                guard += 1;
+            }
+
             const compileCostScore = Math.max(1, Math.round((pattern.length + flags.length) / 2));
             const executeCostScore = Math.max(1, Math.round((text.length * Math.max(1, matches.length)) / 200));
             const replaced = text.replace(regex, replacement);
             const uniqueMatches = new Set(matches.map((item) => item.value)).size;
+
+            const highlightedParts: Array<{ value: string; matched: boolean }> = [];
+            let cursor = 0;
+            for (const item of matches.slice(0, 150)) {
+                const start = Math.max(0, item.index);
+                const end = start + item.value.length;
+                if (start > cursor) {
+                    highlightedParts.push({ value: text.slice(cursor, start), matched: false });
+                }
+                highlightedParts.push({ value: text.slice(start, end), matched: true });
+                cursor = end;
+            }
+            if (cursor < text.length) {
+                highlightedParts.push({ value: text.slice(cursor), matched: false });
+            }
+
             const testResults = testCases
                 .split(/\r?\n/)
                 .map((line) => line.trim())
@@ -948,7 +1014,7 @@ export function RegexTesterTool() {
                 .map((line) => {
                     const [candidate, expectedRaw] = line.split(/\s*=>\s*/);
                     const expected = String(expectedRaw ?? '').toLowerCase() === 'true';
-                    const evaluatedRegex = new RegExp(pattern, flags.replaceAll('g', ''));
+                    const evaluatedRegex = new RegExp(pattern, normalizedFlags.replaceAll('g', ''));
                     const pass = evaluatedRegex.test(candidate ?? '');
                     return {
                         candidate: candidate ?? '',
@@ -962,6 +1028,8 @@ export function RegexTesterTool() {
                 matches,
                 replaced,
                 uniqueMatches,
+                normalizedFlags,
+                highlightedParts,
                 compileCostScore,
                 executeCostScore,
                 testResults,
@@ -972,6 +1040,8 @@ export function RegexTesterTool() {
                 matches: [] as Array<{ value: string; index: number; groups: string[]; namedGroups: string[] }>,
                 replaced: '',
                 uniqueMatches: 0,
+                normalizedFlags: '',
+                highlightedParts: [] as Array<{ value: string; matched: boolean }>,
                 compileCostScore: 0,
                 executeCostScore: 0,
                 testResults: [] as Array<{ candidate: string; expected: boolean; pass: boolean; ok: boolean }>,
@@ -981,21 +1051,28 @@ export function RegexTesterTool() {
 
     const summary: ToolReport = result.error
         ? {
-              level: 'error',
-              title: 'Regex parse error',
-              details: [result.error],
-          }
+            level: 'error',
+            title: 'Regex parse error',
+            details: [result.error],
+        }
         : {
-              level: 'valid',
-              title: 'Regex compiled successfully',
-              details: [
-                  `Matches: ${result.matches.length}`,
-                  `Unique values: ${result.uniqueMatches}`,
-                  `Flags: ${flags || '(none)'}`,
-                  `Compile complexity score: ${result.compileCostScore}`,
-                  `Execution complexity score: ${result.executeCostScore}`,
-              ],
-          };
+            level: 'valid',
+            title: 'Regex compiled successfully',
+            details: [
+                `Matches: ${result.matches.length}`,
+                `Unique values: ${result.uniqueMatches}`,
+                `Flags: ${result.normalizedFlags || '(none)'}`,
+                `Compile complexity score: ${result.compileCostScore}`,
+                `Execution complexity score: ${result.executeCostScore}`,
+            ],
+        };
+
+    const assertionSummary = useMemo(() => {
+        const total = result.testResults.length;
+        const passed = result.testResults.filter((item) => item.ok).length;
+        const failed = total - passed;
+        return { total, passed, failed };
+    }, [result.testResults]);
 
     return (
         <ToolCard>
@@ -1013,28 +1090,81 @@ export function RegexTesterTool() {
                         <Sparkles className="h-3.5 w-3.5" />
                         UUID Preset
                     </Button>
-                    <Button size="sm" className={compactButtonClass} variant="outline" onClick={() => { setText(''); setReplacement(''); }}>
-                        Clear
+                    <Button
+                        size="sm"
+                        className={compactButtonClass}
+                        variant="outline"
+                        onClick={() => {
+                            setPattern('');
+                            setFlags('');
+                            setText('');
+                            setReplacement('');
+                            setTestCases('');
+                        }}
+                    >
+                        Clear All
                     </Button>
                 </div>
 
                 <ReportPanel report={summary} />
 
-                <div className="grid gap-3 md:grid-cols-[1fr_140px]">
+                <div className="grid gap-3 rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-900 md:grid-cols-[minmax(0,1fr)_minmax(0,260px)]">
                     <label className="text-sm">
                         <SectionLabel>Regex Pattern</SectionLabel>
-                        <input value={pattern} onChange={(e) => setPattern(e.target.value)} className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900" placeholder="Pattern (without / /)" />
+                        <input
+                            value={pattern}
+                            onChange={(e) => setPattern(e.target.value)}
+                            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950"
+                            placeholder="Pattern (without / /)"
+                        />
                     </label>
-                    <label className="text-sm">
+
+                    <div className="space-y-2">
                         <SectionLabel>Flags</SectionLabel>
-                        <input value={flags} onChange={(e) => setFlags(e.target.value)} className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900" placeholder="Flags" />
-                    </label>
+                        <div className="flex flex-wrap gap-2">
+                            {supportedFlags.map((flag) => {
+                                const active = flags.includes(flag);
+                                return (
+                                    <button
+                                        key={flag}
+                                        type="button"
+                                        onClick={() => toggleFlag(flag)}
+                                        className={`rounded-lg border px-2.5 py-1.5 text-xs font-medium transition ${active
+                                                ? 'border-cyan-400 bg-cyan-50 text-cyan-700 dark:border-cyan-800 dark:bg-cyan-950/40 dark:text-cyan-200'
+                                                : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200 dark:hover:bg-slate-800'
+                                            }`}
+                                        title={flagDescriptions[flag]}
+                                    >
+                                        {flag}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                        <input
+                            value={flags}
+                            onChange={(e) => setFlags(e.target.value)}
+                            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs dark:border-slate-700 dark:bg-slate-950"
+                            placeholder="Custom flags (e.g. gi)"
+                        />
+                    </div>
                 </div>
 
-                <label className="text-sm">
-                    <SectionLabel>Replacement Pattern</SectionLabel>
-                    <input value={replacement} onChange={(e) => setReplacement(e.target.value)} className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900" placeholder="Replacement pattern (e.g. [$1])" />
-                </label>
+                <div className="grid gap-3 md:grid-cols-2">
+                    <label className="text-sm">
+                        <SectionLabel>Replacement Pattern</SectionLabel>
+                        <input
+                            value={replacement}
+                            onChange={(e) => setReplacement(e.target.value)}
+                            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900"
+                            placeholder="Replacement pattern (e.g. [$1])"
+                        />
+                    </label>
+                    <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs text-slate-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300">
+                        <p className="font-semibold">Quick reference</p>
+                        <p className="mt-1">Capture groups: <code>$1</code>, <code>$2</code> ...</p>
+                        <p>Whole match: <code>$&amp;</code> | Prefix: <code>$`</code> | Suffix: <code>$'</code></p>
+                    </div>
+                </div>
 
                 <label className="text-sm">
                     <SectionLabel>Input Text</SectionLabel>
@@ -1049,6 +1179,29 @@ export function RegexTesterTool() {
                         placeholder="One test per line: input => true|false"
                     />
                 </label>
+
+                <div className="space-y-2">
+                    <SectionLabel>Live Highlight Preview</SectionLabel>
+                    {result.error ? (
+                        <p className="rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-700 dark:border-red-900/80 dark:bg-red-950/40 dark:text-red-200">Cannot render highlight due to regex error.</p>
+                    ) : (
+                        <div className="max-h-40 overflow-auto whitespace-pre-wrap break-words rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm leading-relaxed dark:border-slate-700 dark:bg-slate-900">
+                            {result.highlightedParts.length === 0 ? (
+                                <span className="text-slate-500 dark:text-slate-400">No content to preview.</span>
+                            ) : (
+                                result.highlightedParts.map((part, index) =>
+                                    part.matched ? (
+                                        <mark key={`${part.value}-${index}`} className="rounded bg-cyan-200/70 px-0.5 text-slate-900 dark:bg-cyan-700/40 dark:text-cyan-100">
+                                            {part.value || ' '}
+                                        </mark>
+                                    ) : (
+                                        <span key={`${part.value}-${index}`}>{part.value}</span>
+                                    ),
+                                )
+                            )}
+                        </div>
+                    )}
+                </div>
 
                 <div className="grid gap-4 xl:grid-cols-2">
                     <div className="space-y-2">
@@ -1089,6 +1242,11 @@ export function RegexTesterTool() {
                 {result.testResults.length > 0 ? (
                     <div className="space-y-2">
                         <SectionLabel>Assertion Runner</SectionLabel>
+                        <div className="grid gap-2 rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs dark:border-slate-700 dark:bg-slate-900 sm:grid-cols-3">
+                            <p>Total: {assertionSummary.total}</p>
+                            <p className="text-emerald-700 dark:text-emerald-300">Passed: {assertionSummary.passed}</p>
+                            <p className="text-red-700 dark:text-red-300">Failed: {assertionSummary.failed}</p>
+                        </div>
                         <div className="max-h-52 overflow-auto rounded-xl border border-slate-200 bg-slate-50 p-2 text-xs dark:border-slate-700 dark:bg-slate-900">
                             {result.testResults.map((item) => (
                                 <p
