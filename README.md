@@ -4,7 +4,7 @@ A modern, responsive portfolio website showcasing projects, skills, and blog con
 
 ## 🎯 About
 
-This is the professional portfolio of **I Wayan Tisna Adi Muliart**, a Middle to Senior Software Developer with 6+ years of experience in:
+This is the professional portfolio of **I Wayan Tisna Adi Muliarta**, a Middle to Senior Software Developer with 6+ years of experience in:
 
 - **Backend**: Laravel (6+ years), REST API (6+ years), .NET (1+ year)
 - **Database**: SQL Server (6+ years)

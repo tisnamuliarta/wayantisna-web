@@ -9,9 +9,9 @@ import { ContactSection } from "@/components/sections/contact";
 export const metadata: Metadata = {
     title: "Wayan Tisna | Senior Software Developer Portfolio",
     description:
-        "Portfolio website of I Wayan Tisna Adi Muliart, a senior software developer specializing in Laravel, REST API architecture, SQL Server optimization, Vue/Nuxt, React/Next.js, and DevOps workflows with Docker, Kubernetes, and GitLab CI/CD.",
+        "Portfolio website of I Wayan Tisna Adi Muliarta, a senior software developer specializing in Laravel, REST API architecture, SQL Server optimization, Vue/Nuxt, React/Next.js, and DevOps workflows with Docker, Kubernetes, and GitLab CI/CD.",
     keywords: [
-        "I Wayan Tisna Adi Muliart",
+        "I Wayan Tisna Adi Muliarta",
         "Wayan Tisna",
         "Laravel developer",
         "REST API developer",

@@ -20,9 +20,9 @@ export const metadata: Metadata = {
     template: "%s | Wayan Tisna",
   },
   description:
-    "Professional portfolio, technical blog, and engineering tools by I Wayan Tisna Adi Muliart. Expertise: Laravel, REST API, SQL Server, Nuxt.js, Vue.js, React.js, and Next.js.",
+    "Professional portfolio, technical blog, and engineering tools by I Wayan Tisna Adi Muliarta. Expertise: Laravel, REST API, SQL Server, Nuxt.js, Vue.js, React.js, and Next.js.",
   keywords: [
-    "I Wayan Tisna Adi Muliart",
+    "I Wayan Tisna Adi Muliarta",
     "Wayan Tisna",
     "software developer portfolio",
     "Laravel developer",
@@ -53,7 +53,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Wayan Tisna | Software Developer Portfolio",
     description:
-      "Portfolio and engineering blog by I Wayan Tisna Adi Muliart.",
+      "Portfolio and engineering blog by I Wayan Tisna Adi Muliarta.",
   },
 };
 

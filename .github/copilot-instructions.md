@@ -15,7 +15,7 @@ npm run lint       # Run ESLint
 
 ## Project Information
 
-**Name**: I Wayan Tisna Adi Muliart  
+**Name**: I Wayan Tisna Adi Muliarta  
 **Title**: Middle to Senior Software Developer  
 **Years of Experience**: 6+ years  
 

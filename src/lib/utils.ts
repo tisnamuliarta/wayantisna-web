@@ -6,7 +6,7 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export const profile = {
-    fullName: "I Wayan Tisna Adi Muliart",
+    fullName: "I Wayan Tisna Adi Muliarta",
     shortName: "Wayan Tisna",
     aliases: ["Wayan Tisna", "Wayan", "Tisna"],
     title: "Senior Software Developer",
