@@ -29,7 +29,17 @@ const gitignoreTemplates: Record<string, string[]> = {
     laravel: ['/vendor/', '/storage/*.key', '/bootstrap/cache/*.php', '.env'],
     python: ['__pycache__/', '*.pyc', '.venv/', '.pytest_cache/'],
     docker: ['.docker/', '*.log', 'docker-compose.override.yml'],
+    ide: ['.vscode/', '.idea/', '*.swp'],
+    os: ['.DS_Store', 'Thumbs.db'],
+    coverage: ['coverage/', '.nyc_output/', '.coverage'],
 };
+
+function normalizeMultiline(input: string) {
+    return input
+        .split(/\r?\n/)
+        .map((item) => item.trim())
+        .filter(Boolean);
+}
 
 function ReportBox({ report }: { report: ReportState }) {
     return (
@@ -1300,31 +1310,105 @@ export function HtaccessGeneratorTool() {
 }
 
 export function RobotsTxtGeneratorTool() {
+    const [userAgent, setUserAgent] = useState('*');
     const [disallow, setDisallow] = useState('/admin\n/private');
     const [allow, setAllow] = useState('/');
     const [sitemap, setSitemap] = useState('https://wayantisna.com/sitemap.xml');
     const [crawlDelay, setCrawlDelay] = useState('5');
+    const [host, setHost] = useState('');
+
+    const diagnostics = useMemo(() => {
+        const allowPaths = normalizeMultiline(allow);
+        const disallowPaths = normalizeMultiline(disallow);
+        const warnings: string[] = [];
+        const tips: string[] = [];
+
+        const duplicateAllow = allowPaths.filter((item, idx) => allowPaths.indexOf(item) !== idx);
+        const duplicateDisallow = disallowPaths.filter((item, idx) => disallowPaths.indexOf(item) !== idx);
+        if (duplicateAllow.length > 0) warnings.push(`Duplicate allow path(s): ${Array.from(new Set(duplicateAllow)).join(', ')}`);
+        if (duplicateDisallow.length > 0) warnings.push(`Duplicate disallow path(s): ${Array.from(new Set(duplicateDisallow)).join(', ')}`);
+
+        const invalidAllow = allowPaths.filter((path) => !path.startsWith('/') && path !== '*');
+        const invalidDisallow = disallowPaths.filter((path) => !path.startsWith('/') && path !== '*');
+        if (invalidAllow.length > 0) warnings.push(`Allow paths should start with '/': ${invalidAllow.join(', ')}`);
+        if (invalidDisallow.length > 0) warnings.push(`Disallow paths should start with '/': ${invalidDisallow.join(', ')}`);
+
+        const conflictPaths = allowPaths.filter((item) => disallowPaths.includes(item));
+        if (conflictPaths.length > 0) warnings.push(`Path appears in both allow and disallow: ${Array.from(new Set(conflictPaths)).join(', ')}`);
+
+        const crawl = Number(crawlDelay);
+        if (crawlDelay && (Number.isNaN(crawl) || crawl < 0 || crawl > 60)) {
+            warnings.push('Crawl-delay should be a number between 0 and 60.');
+        }
+
+        if (sitemap && !/^https?:\/\//i.test(sitemap)) {
+            warnings.push('Sitemap should be an absolute URL (http/https).');
+        }
+
+        if (disallowPaths.includes('/') && !allowPaths.includes('/')) {
+            tips.push('Current rules likely block the entire site. Good for staging, risky for production.');
+        }
+        if (!sitemap) tips.push('Add sitemap URL for better search indexing.');
+        if (!allowPaths.length && !disallowPaths.length) tips.push('No allow/disallow rules set. Crawlers can access everything by default.');
+        if (userAgent !== '*' && !userAgent.includes('bot')) tips.push('Custom user-agent is case-sensitive; verify exact crawler name.');
+
+        return {
+            allowCount: allowPaths.length,
+            disallowCount: disallowPaths.length,
+            warnings,
+            tips,
+        };
+    }, [allow, crawlDelay, disallow, sitemap, userAgent]);
 
     const output = useMemo(() => {
-        const disallowLines = disallow
-            .split('\n')
-            .map((item) => item.trim())
-            .filter(Boolean)
-            .map((item) => `Disallow: ${item}`);
-        const allowLines = allow
-            .split('\n')
-            .map((item) => item.trim())
-            .filter(Boolean)
-            .map((item) => `Allow: ${item}`);
-        return ['User-agent: *', ...allowLines, ...disallowLines, crawlDelay ? `Crawl-delay: ${crawlDelay}` : '', sitemap ? `Sitemap: ${sitemap}` : '']
+        const disallowLines = normalizeMultiline(disallow).map((item) => `Disallow: ${item}`);
+        const allowLines = normalizeMultiline(allow).map((item) => `Allow: ${item}`);
+        return [`User-agent: ${userAgent.trim() || '*'}`, ...allowLines, ...disallowLines, crawlDelay ? `Crawl-delay: ${crawlDelay}` : '', host ? `Host: ${host}` : '', sitemap ? `Sitemap: ${sitemap}` : '']
             .filter(Boolean)
             .join('\n');
-    }, [allow, crawlDelay, disallow, sitemap]);
+    }, [allow, crawlDelay, disallow, host, sitemap, userAgent]);
 
     return (
         <ToolCard>
             <div className="space-y-4">
+                <div className="flex flex-wrap gap-2">
+                    <Button
+                        size="sm"
+                        className={compactButtonClass}
+                        variant="outline"
+                        onClick={() => {
+                            setUserAgent('*');
+                            setAllow('/');
+                            setDisallow('/admin\n/private');
+                            setSitemap('https://wayantisna.com/sitemap.xml');
+                            setCrawlDelay('5');
+                            setHost('');
+                        }}
+                    >
+                        Public Website Preset
+                    </Button>
+                    <Button
+                        size="sm"
+                        className={compactButtonClass}
+                        variant="outline"
+                        onClick={() => {
+                            setUserAgent('*');
+                            setAllow('');
+                            setDisallow('/');
+                            setSitemap('');
+                            setCrawlDelay('');
+                            setHost('');
+                        }}
+                    >
+                        Block All Preset
+                    </Button>
+                </div>
+
                 <div className="grid gap-3 md:grid-cols-2">
+                    <label className="text-sm">
+                        <SectionLabel>User Agent</SectionLabel>
+                        <input value={userAgent} onChange={(e) => setUserAgent(e.target.value)} className={inputClass} placeholder="* or Googlebot" />
+                    </label>
                     <label className="text-sm">
                         <SectionLabel>Allow Paths</SectionLabel>
                         <textarea value={allow} onChange={(e) => setAllow(e.target.value)} className={`${textAreaClass} h-24`} placeholder="Allow paths, one per line" />
@@ -1343,6 +1427,31 @@ export function RobotsTxtGeneratorTool() {
                         <SectionLabel>Sitemap URL</SectionLabel>
                         <input value={sitemap} onChange={(e) => setSitemap(e.target.value)} className={inputClass} placeholder="Sitemap URL" />
                     </label>
+                    <label className="text-sm">
+                        <SectionLabel>Host (optional)</SectionLabel>
+                        <input value={host} onChange={(e) => setHost(e.target.value)} className={inputClass} placeholder="example.com" />
+                    </label>
+                </div>
+
+                <div className={`rounded-xl border p-3 text-xs ${diagnostics.warnings.length === 0 ? 'border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-900/80 dark:bg-emerald-950/40 dark:text-emerald-200' : 'border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-900/80 dark:bg-amber-950/40 dark:text-amber-200'}`}>
+                    <p className="font-semibold">Robots.txt analysis</p>
+                    <p className="mt-1">Allow rules: {diagnostics.allowCount} | Disallow rules: {diagnostics.disallowCount}</p>
+                    {diagnostics.warnings.length > 0 ? (
+                        <ul className="mt-1 space-y-1">
+                            {diagnostics.warnings.map((warning) => (
+                                <li key={warning}>- {warning}</li>
+                            ))}
+                        </ul>
+                    ) : (
+                        <p className="mt-1">No structural warnings detected.</p>
+                    )}
+                    {diagnostics.tips.length > 0 ? (
+                        <ul className="mt-2 space-y-1 text-slate-700 dark:text-slate-300">
+                            {diagnostics.tips.map((tip) => (
+                                <li key={tip}>• {tip}</li>
+                            ))}
+                        </ul>
+                    ) : null}
                 </div>
                 <pre className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs dark:border-slate-700 dark:bg-slate-900">{output}</pre>
                 <CopyButton value={output} className={compactButtonClass} />
@@ -1357,6 +1466,15 @@ export function GitignoreGeneratorTool() {
     const [laravel, setLaravel] = useState(false);
     const [python, setPython] = useState(false);
     const [docker, setDocker] = useState(true);
+    const [ide, setIde] = useState(false);
+    const [osFiles, setOsFiles] = useState(true);
+    const [coverage, setCoverage] = useState(true);
+    const [customEntries, setCustomEntries] = useState('');
+
+    const selectedStacks = useMemo(
+        () => [node && 'Node.js', next && 'Next.js', laravel && 'Laravel', python && 'Python', docker && 'Docker', ide && 'IDE', osFiles && 'OS files', coverage && 'Coverage'].filter(Boolean) as string[],
+        [coverage, docker, ide, laravel, next, node, osFiles, python],
+    );
 
     const output = useMemo(() => {
         const rows = new Set<string>();
@@ -1365,8 +1483,34 @@ export function GitignoreGeneratorTool() {
         if (laravel) gitignoreTemplates.laravel.forEach((item) => rows.add(item));
         if (python) gitignoreTemplates.python.forEach((item) => rows.add(item));
         if (docker) gitignoreTemplates.docker.forEach((item) => rows.add(item));
+        if (ide) gitignoreTemplates.ide.forEach((item) => rows.add(item));
+        if (osFiles) gitignoreTemplates.os.forEach((item) => rows.add(item));
+        if (coverage) gitignoreTemplates.coverage.forEach((item) => rows.add(item));
+        normalizeMultiline(customEntries).forEach((item) => rows.add(item));
         return Array.from(rows).sort().join('\n');
-    }, [docker, laravel, next, node, python]);
+    }, [coverage, customEntries, docker, ide, laravel, next, node, osFiles, python]);
+
+    const gitignoreDiagnostics = useMemo(() => {
+        const lines = output.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+        const warnings: string[] = [];
+        const tips: string[] = [];
+
+        if (lines.length === 0) warnings.push('No ignore rules generated yet. Select at least one stack.');
+        if (!lines.some((line) => line.startsWith('.env'))) warnings.push('No .env ignore rule found. Add `.env` or `.env*` if secrets are stored locally.');
+        if (node && !lines.includes('node_modules/')) warnings.push('Node.js selected but `node_modules/` missing.');
+        if (next && !lines.includes('.next/')) warnings.push('Next.js selected but `.next/` missing.');
+        if (python && !lines.includes('__pycache__/')) warnings.push('Python selected but `__pycache__/` missing.');
+
+        if (!ide) tips.push('Consider enabling IDE rules to avoid editor-specific file noise.');
+        if (!coverage) tips.push('Consider ignoring coverage artifacts for cleaner commits.');
+        if (customEntries.trim()) tips.push('Custom entries included — review wildcard patterns before committing.');
+
+        return {
+            count: lines.length,
+            warnings,
+            tips,
+        };
+    }, [coverage, customEntries, ide, next, node, output, python]);
 
     return (
         <ToolCard>
@@ -1377,7 +1521,38 @@ export function GitignoreGeneratorTool() {
                     <label><input type="checkbox" checked={laravel} onChange={(e) => setLaravel(e.target.checked)} className="mr-2" />Laravel</label>
                     <label><input type="checkbox" checked={python} onChange={(e) => setPython(e.target.checked)} className="mr-2" />Python</label>
                     <label><input type="checkbox" checked={docker} onChange={(e) => setDocker(e.target.checked)} className="mr-2" />Docker</label>
+                    <label><input type="checkbox" checked={ide} onChange={(e) => setIde(e.target.checked)} className="mr-2" />IDE files</label>
+                    <label><input type="checkbox" checked={osFiles} onChange={(e) => setOsFiles(e.target.checked)} className="mr-2" />OS files</label>
+                    <label><input type="checkbox" checked={coverage} onChange={(e) => setCoverage(e.target.checked)} className="mr-2" />Coverage artifacts</label>
                 </div>
+
+                <label className="text-sm">
+                    <SectionLabel>Custom Entries (optional)</SectionLabel>
+                    <textarea value={customEntries} onChange={(e) => setCustomEntries(e.target.value)} className={`${textAreaClass} h-20`} placeholder="Add one rule per line, e.g.\n*.local\ntmp/" />
+                </label>
+
+                <div className={`rounded-xl border p-3 text-xs ${gitignoreDiagnostics.warnings.length === 0 ? 'border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-900/80 dark:bg-emerald-950/40 dark:text-emerald-200' : 'border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-900/80 dark:bg-amber-950/40 dark:text-amber-200'}`}>
+                    <p className="font-semibold">.gitignore analysis</p>
+                    <p className="mt-1">Selected stacks: {selectedStacks.length > 0 ? selectedStacks.join(', ') : 'none'}</p>
+                    <p>Total rules: {gitignoreDiagnostics.count}</p>
+                    {gitignoreDiagnostics.warnings.length > 0 ? (
+                        <ul className="mt-1 space-y-1">
+                            {gitignoreDiagnostics.warnings.map((warning) => (
+                                <li key={warning}>- {warning}</li>
+                            ))}
+                        </ul>
+                    ) : (
+                        <p className="mt-1">No major warnings detected.</p>
+                    )}
+                    {gitignoreDiagnostics.tips.length > 0 ? (
+                        <ul className="mt-2 space-y-1 text-slate-700 dark:text-slate-300">
+                            {gitignoreDiagnostics.tips.map((tip) => (
+                                <li key={tip}>• {tip}</li>
+                            ))}
+                        </ul>
+                    ) : null}
+                </div>
+
                 <pre className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs dark:border-slate-700 dark:bg-slate-900">{output}</pre>
                 <CopyButton value={output} className={compactButtonClass} />
             </div>
