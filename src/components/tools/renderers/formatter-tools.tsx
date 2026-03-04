@@ -2,6 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { CopyButton, SectionLabel, ToolCard, formatHtml, formatSql, formatXml } from './shared';
+import { ArrowRight, FileText, Menu, Search, Wrench, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
 type ValidationLevel = 'idle' | 'valid' | 'warning' | 'error';
@@ -266,6 +267,8 @@ function MetricsBar({ input, output }: { input: string; output: string }) {
     );
 }
 
+const compactButtonClass = 'h-8 rounded-lg px-3 text-xs';
+
 export function JsonFormatterTool() {
     const sample = '{\n  "name": "Wayan",\n  "skills": ["Laravel", "Next.js"],\n  "experienceYears": 7,\n  "active": true\n}';
     const [input, setInput] = useState(sample);
@@ -301,11 +304,26 @@ export function JsonFormatterTool() {
         <ToolCard>
             <div className="space-y-4">
                 <div className="flex flex-wrap gap-2">
-                    <Button onClick={() => runJson('format')}>Format</Button>
-                    <Button variant="outline" onClick={() => runJson('minify')}>Minify</Button>
-                    <Button variant="outline" onClick={() => runJson('sort')}>Sort Keys</Button>
-                    <Button variant="outline" onClick={() => setInput(sample)}>Sample</Button>
-                    <Button variant="outline" onClick={() => { setInput(''); setOutput(''); }}>Clear</Button>
+                    <Button size="sm" className={compactButtonClass} onClick={() => runJson('format')}>
+                        <Wrench className="h-3.5 w-3.5" />
+                        Format
+                    </Button>
+                    <Button size="sm" className={compactButtonClass} variant="outline" onClick={() => runJson('minify')}>
+                        <ArrowRight className="h-3.5 w-3.5" />
+                        Minify
+                    </Button>
+                    <Button size="sm" className={compactButtonClass} variant="outline" onClick={() => runJson('sort')}>
+                        <Menu className="h-3.5 w-3.5" />
+                        Sort Keys
+                    </Button>
+                    <Button size="sm" className={compactButtonClass} variant="outline" onClick={() => setInput(sample)}>
+                        <FileText className="h-3.5 w-3.5" />
+                        Sample
+                    </Button>
+                    <Button size="sm" className={compactButtonClass} variant="outline" onClick={() => { setInput(''); setOutput(''); }}>
+                        <X className="h-3.5 w-3.5" />
+                        Clear
+                    </Button>
                 </div>
 
                 <MetricsBar input={input} output={output} />
@@ -365,11 +383,26 @@ export function HtmlFormatterTool() {
         <ToolCard>
             <div className="space-y-4">
                 <div className="flex flex-wrap gap-2">
-                    <Button onClick={onFormat}>Format HTML</Button>
-                    <Button variant="outline" onClick={onMinify}>Minify</Button>
-                    <Button variant="outline" onClick={onValidateOnly}>Validate</Button>
-                    <Button variant="outline" onClick={() => setInput(sample)}>Sample</Button>
-                    <Button variant="outline" onClick={() => { setInput(''); setOutput(''); }}>Clear</Button>
+                    <Button size="sm" className={compactButtonClass} onClick={onFormat}>
+                        <Wrench className="h-3.5 w-3.5" />
+                        Format HTML
+                    </Button>
+                    <Button size="sm" className={compactButtonClass} variant="outline" onClick={onMinify}>
+                        <ArrowRight className="h-3.5 w-3.5" />
+                        Minify
+                    </Button>
+                    <Button size="sm" className={compactButtonClass} variant="outline" onClick={onValidateOnly}>
+                        <Search className="h-3.5 w-3.5" />
+                        Validate
+                    </Button>
+                    <Button size="sm" className={compactButtonClass} variant="outline" onClick={() => setInput(sample)}>
+                        <FileText className="h-3.5 w-3.5" />
+                        Sample
+                    </Button>
+                    <Button size="sm" className={compactButtonClass} variant="outline" onClick={() => { setInput(''); setOutput(''); }}>
+                        <X className="h-3.5 w-3.5" />
+                        Clear
+                    </Button>
                 </div>
 
                 <MetricsBar input={input} output={output} />
@@ -431,19 +464,34 @@ export function SqlFormatterTool() {
         <ToolCard>
             <div className="space-y-4">
                 <div className="flex flex-wrap items-center gap-2">
-                    <Button onClick={onFormat}>Format SQL</Button>
-                    <Button variant="outline" onClick={onMinify}>Minify</Button>
-                    <Button variant="outline" onClick={onAnalyzeOnly}>Analyze Risks</Button>
-                    <Button variant="outline" onClick={() => setInput(sample)}>Sample</Button>
-                    <Button variant="outline" onClick={() => { setInput(''); setOutput(''); }}>Clear</Button>
+                    <Button size="sm" className={compactButtonClass} onClick={onFormat}>
+                        <Wrench className="h-3.5 w-3.5" />
+                        Format SQL
+                    </Button>
+                    <Button size="sm" className={compactButtonClass} variant="outline" onClick={onMinify}>
+                        <ArrowRight className="h-3.5 w-3.5" />
+                        Minify
+                    </Button>
+                    <Button size="sm" className={compactButtonClass} variant="outline" onClick={onAnalyzeOnly}>
+                        <Search className="h-3.5 w-3.5" />
+                        Analyze Risks
+                    </Button>
+                    <Button size="sm" className={compactButtonClass} variant="outline" onClick={() => setInput(sample)}>
+                        <FileText className="h-3.5 w-3.5" />
+                        Sample
+                    </Button>
+                    <Button size="sm" className={compactButtonClass} variant="outline" onClick={() => { setInput(''); setOutput(''); }}>
+                        <X className="h-3.5 w-3.5" />
+                        Clear
+                    </Button>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2">
                     <SectionLabel>Keyword Case</SectionLabel>
-                    <Button size="sm" variant={keywordCase === 'upper' ? 'default' : 'outline'} onClick={() => setKeywordCase('upper')}>
+                    <Button size="sm" className={compactButtonClass} variant={keywordCase === 'upper' ? 'default' : 'outline'} onClick={() => setKeywordCase('upper')}>
                         UPPERCASE
                     </Button>
-                    <Button size="sm" variant={keywordCase === 'lower' ? 'default' : 'outline'} onClick={() => setKeywordCase('lower')}>
+                    <Button size="sm" className={compactButtonClass} variant={keywordCase === 'lower' ? 'default' : 'outline'} onClick={() => setKeywordCase('lower')}>
                         lowercase
                     </Button>
                 </div>
@@ -518,10 +566,10 @@ export function XmlYamlFormatterTool() {
         <ToolCard>
             <div className="space-y-4">
                 <div className="flex flex-wrap gap-2">
-                    <Button size="sm" variant={mode === 'xml' ? 'default' : 'outline'} onClick={() => { setMode('xml'); setInput(xmlSample); setOutput(''); }}>
+                    <Button size="sm" className={compactButtonClass} variant={mode === 'xml' ? 'default' : 'outline'} onClick={() => { setMode('xml'); setInput(xmlSample); setOutput(''); }}>
                         XML
                     </Button>
-                    <Button size="sm" variant={mode === 'yaml' ? 'default' : 'outline'} onClick={() => { setMode('yaml'); setInput(yamlSample); setOutput(''); }}>
+                    <Button size="sm" className={compactButtonClass} variant={mode === 'yaml' ? 'default' : 'outline'} onClick={() => { setMode('yaml'); setInput(yamlSample); setOutput(''); }}>
                         YAML
                     </Button>
                 </div>
@@ -529,10 +577,22 @@ export function XmlYamlFormatterTool() {
                 <p className="text-xs text-slate-500 dark:text-slate-400">{modeHelp}</p>
 
                 <div className="flex flex-wrap gap-2">
-                    <Button onClick={onFormat}>Format {mode.toUpperCase()}</Button>
-                    <Button variant="outline" onClick={onValidateOnly}>Validate</Button>
-                    <Button variant="outline" onClick={onSample}>Sample</Button>
-                    <Button variant="outline" onClick={() => { setInput(''); setOutput(''); }}>Clear</Button>
+                    <Button size="sm" className={compactButtonClass} onClick={onFormat}>
+                        <Wrench className="h-3.5 w-3.5" />
+                        Format {mode.toUpperCase()}
+                    </Button>
+                    <Button size="sm" className={compactButtonClass} variant="outline" onClick={onValidateOnly}>
+                        <Search className="h-3.5 w-3.5" />
+                        Validate
+                    </Button>
+                    <Button size="sm" className={compactButtonClass} variant="outline" onClick={onSample}>
+                        <FileText className="h-3.5 w-3.5" />
+                        Sample
+                    </Button>
+                    <Button size="sm" className={compactButtonClass} variant="outline" onClick={() => { setInput(''); setOutput(''); }}>
+                        <X className="h-3.5 w-3.5" />
+                        Clear
+                    </Button>
                 </div>
 
                 <MetricsBar input={input} output={output} />
