@@ -335,15 +335,36 @@ export function UrlTool() {
 export function JwtTool() {
     const sampleToken =
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IldheWFuIFRpc25hIiwiaWF0IjoxNTE2MjM5MDIyLCJyb2xlIjoiZGV2ZWxvcGVyIn0.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c';
+    const [mode, setMode] = useState<'decode' | 'generate'>('decode');
     const [token, setToken] = useState('');
     const [header, setHeader] = useState('');
     const [payload, setPayload] = useState('');
     const [signature, setSignature] = useState('');
+    const [headerInput, setHeaderInput] = useState('{\n  "alg": "HS256",\n  "typ": "JWT"\n}');
+    const [payloadInput, setPayloadInput] = useState('{\n  "sub": "1234567890",\n  "name": "Wayan Tisna",\n  "role": "developer",\n  "iat": 1710000000\n}');
+    const [secret, setSecret] = useState('change-this-secret');
+    const [generatedToken, setGeneratedToken] = useState('');
     const [report, setReport] = useState<ToolReport>({
         level: 'idle',
-        title: 'Paste token and decode',
-        details: ['This tool decodes JWT locally and does not validate signature cryptographically.'],
+        title: 'JWT toolkit ready',
+        details: ['Decode existing JWTs or generate dev/test tokens locally.'],
     });
+
+    const toBase64Url = (input: string) => base64ToUrlSafe(base64Encode(input));
+
+    const signHs256 = async (value: string, key: string) => {
+        const cryptoKey = await crypto.subtle.importKey(
+            'raw',
+            new TextEncoder().encode(key),
+            { name: 'HMAC', hash: 'SHA-256' },
+            false,
+            ['sign'],
+        );
+        const signatureBuffer = await crypto.subtle.sign('HMAC', cryptoKey, new TextEncoder().encode(value));
+        const bytes = Array.from(new Uint8Array(signatureBuffer));
+        const binary = bytes.map((byte) => String.fromCharCode(byte)).join('');
+        return base64ToUrlSafe(btoa(binary));
+    };
 
     const decode = () => {
         try {
@@ -389,6 +410,7 @@ export function JwtTool() {
             setHeader(JSON.stringify(headerValue, null, 2));
             setPayload(JSON.stringify(payloadValue, null, 2));
             setSignature(signatureValue);
+            setGeneratedToken('');
             setReport({
                 level: 'valid',
                 title: 'JWT decoded successfully',
@@ -398,6 +420,7 @@ export function JwtTool() {
             setHeader('');
             setPayload('');
             setSignature('');
+            setGeneratedToken('');
             setReport({
                 level: 'error',
                 title: 'JWT decode failed',
@@ -406,34 +429,118 @@ export function JwtTool() {
         }
     };
 
+    const generate = async () => {
+        try {
+            const parsedHeader = JSON.parse(headerInput) as Record<string, unknown>;
+            const parsedPayload = JSON.parse(payloadInput) as Record<string, unknown>;
+            const alg = String(parsedHeader.alg ?? 'none').toUpperCase();
+            const headerSegment = toBase64Url(JSON.stringify(parsedHeader));
+            const payloadSegment = toBase64Url(JSON.stringify(parsedPayload));
+            const signingInput = `${headerSegment}.${payloadSegment}`;
+            let signatureSegment = '';
+
+            if (alg === 'HS256') {
+                if (!secret.trim()) throw new Error('Secret is required for HS256.');
+                signatureSegment = await signHs256(signingInput, secret.trim());
+            } else if (alg !== 'NONE') {
+                throw new Error('Only HS256 and NONE are supported in this generator.');
+            }
+
+            const generated = `${signingInput}.${signatureSegment}`;
+            setGeneratedToken(generated);
+            setToken(generated);
+            setHeader(JSON.stringify(parsedHeader, null, 2));
+            setPayload(JSON.stringify(parsedPayload, null, 2));
+            setSignature(signatureSegment);
+            setReport({
+                level: alg === 'NONE' ? 'warning' : 'valid',
+                title: 'JWT generated successfully',
+                details: [
+                    `Algorithm: ${alg}`,
+                    `Token size: ${generated.length} chars`,
+                    alg === 'NONE' ? 'Unsigned token generated for testing only.' : 'Signed with HS256.',
+                ],
+            });
+        } catch (error) {
+            setGeneratedToken('');
+            setReport({
+                level: 'error',
+                title: 'JWT generation failed',
+                details: [error instanceof Error ? error.message : 'Invalid generator input'],
+            });
+        }
+    };
+
     return (
         <ToolCard>
             <div className="space-y-4">
                 <div className="flex flex-wrap gap-2">
-                    <Button size="sm" className={compactButtonClass} onClick={decode}>
-                        <Shield className="h-3.5 w-3.5" />
-                        Decode JWT
+                    <Button size="sm" className={compactButtonClass} variant={mode === 'decode' ? 'default' : 'outline'} onClick={() => setMode('decode')}>
+                        Decode
                     </Button>
+                    <Button size="sm" className={compactButtonClass} variant={mode === 'generate' ? 'default' : 'outline'} onClick={() => setMode('generate')}>
+                        Generate
+                    </Button>
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                    {mode === 'decode' ? (
+                        <Button size="sm" className={compactButtonClass} onClick={decode}>
+                            <Shield className="h-3.5 w-3.5" />
+                            Decode JWT
+                        </Button>
+                    ) : (
+                        <Button size="sm" className={compactButtonClass} onClick={generate}>
+                            <Shield className="h-3.5 w-3.5" />
+                            Generate JWT
+                        </Button>
+                    )}
                     <Button size="sm" className={compactButtonClass} variant="outline" onClick={() => setToken(sampleToken)}>
                         <FileText className="h-3.5 w-3.5" />
                         Sample Token
                     </Button>
-                    <Button size="sm" className={compactButtonClass} variant="outline" onClick={() => { setToken(''); setHeader(''); setPayload(''); setSignature(''); }}>
+                    <Button size="sm" className={compactButtonClass} variant="outline" onClick={() => { setToken(''); setHeader(''); setPayload(''); setSignature(''); setGeneratedToken(''); }}>
                         Clear
                     </Button>
                 </div>
 
                 <ReportPanel report={report} />
 
-                <div className="space-y-2">
-                    <SectionLabel>JWT Input</SectionLabel>
-                    <textarea
-                        value={token}
-                        onChange={(e) => setToken(e.target.value)}
-                        placeholder="Paste JWT token here..."
-                        className="h-32 w-full rounded-xl border border-slate-300 bg-white p-3 text-sm outline-none ring-cyan-600 transition focus:ring-2 dark:border-slate-700 dark:bg-slate-950"
-                    />
-                </div>
+                {mode === 'decode' ? (
+                    <div className="space-y-2">
+                        <SectionLabel>JWT Input</SectionLabel>
+                        <textarea
+                            value={token}
+                            onChange={(e) => setToken(e.target.value)}
+                            placeholder="Paste JWT token here..."
+                            className="h-32 w-full rounded-xl border border-slate-300 bg-white p-3 text-sm outline-none ring-cyan-600 transition focus:ring-2 dark:border-slate-700 dark:bg-slate-950"
+                        />
+                    </div>
+                ) : (
+                    <div className="space-y-3">
+                        <div className="grid gap-3 md:grid-cols-2">
+                            <textarea
+                                value={headerInput}
+                                onChange={(e) => setHeaderInput(e.target.value)}
+                                placeholder="JWT Header JSON"
+                                className="h-36 w-full rounded-xl border border-slate-300 bg-white p-3 text-sm outline-none ring-cyan-600 transition focus:ring-2 dark:border-slate-700 dark:bg-slate-950"
+                            />
+                            <textarea
+                                value={payloadInput}
+                                onChange={(e) => setPayloadInput(e.target.value)}
+                                placeholder="JWT Payload JSON"
+                                className="h-36 w-full rounded-xl border border-slate-300 bg-white p-3 text-sm outline-none ring-cyan-600 transition focus:ring-2 dark:border-slate-700 dark:bg-slate-950"
+                            />
+                        </div>
+                        <input
+                            value={secret}
+                            onChange={(e) => setSecret(e.target.value)}
+                            placeholder="Signing secret (HS256)"
+                            className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none ring-cyan-600 transition focus:ring-2 dark:border-slate-700 dark:bg-slate-950"
+                        />
+                        <OutputBox title="Generated Token" value={generatedToken} placeholder="Generated token appears here." />
+                    </div>
+                )}
 
                 <div className="grid gap-4 xl:grid-cols-3">
                     <OutputBox title="Header" value={header} placeholder="Decoded header appears here." />

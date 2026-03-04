@@ -11,7 +11,17 @@ interface ToolDetailPageProps {
     }>;
 }
 
-const wideToolSlugs = new Set(['code-diff-checker', 'json-diff', 'css-gradient-generator']);
+const wideToolSlugs = new Set([
+    'code-diff-checker',
+    'json-diff',
+    'css-gradient-generator',
+    'api-load-tester',
+    'openapi-swagger-editor',
+    'cloud-cost-calculator',
+    'kubernetes-yaml-generator',
+    'docker-compose-generator',
+    'graphql-query-builder',
+]);
 
 export async function generateStaticParams() {
     return toolsCatalog.map((tool) => ({ slug: tool.slug }));
