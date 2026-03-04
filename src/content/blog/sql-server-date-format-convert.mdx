@@ -1,0 +1,448 @@
+---
+title: "SQL Server Date Format: Complete CONVERT() Style Code Reference"
+description: "Master SQL Server date formatting with CONVERT(varchar, getDate(), style). Full reference of all 40+ style codes with real output examples, copy-paste queries, and FORMAT() alternatives."
+author: Wayan Tisna
+publishedAt: 2026-03-04
+tags:
+  - SQL Server
+  - T-SQL
+  - Database
+  - Date Format
+  - CONVERT
+---
+
+## Introduction
+
+Formatting dates in SQL Server is one of the most common tasks in backend development. The built-in `CONVERT()` function lets you transform a `DATETIME`, `DATE`, `DATETIME2`, or `SMALLDATETIME` value into a specific `VARCHAR` format using a numeric **style code**.
+
+This article is a **complete, copy-pasteable reference** for every style code supported by SQL Server, with real output examples so you know exactly what to expect.
+
+---
+
+## Syntax
+
+```sql
+CONVERT(data_type, expression, style)
+```
+
+| Parameter    | Description                                               |
+|--------------|-----------------------------------------------------------|
+| `data_type`  | Target type — typically `VARCHAR(50)` or `NVARCHAR(50)`  |
+| `expression` | The date/time value (column, variable, or `GETDATE()`)   |
+| `style`      | Integer style code that defines the output format         |
+
+**Quick example:**
+
+```sql
+SELECT CONVERT(VARCHAR, GETDATE(), 23) AS Result;
+-- Result: 2026-03-04
+```
+
+---
+
+## Setup — Run These First
+
+Copy and run the block below in any SQL Server query window. It creates a fixed reference datetime so every example produces consistent, predictable output:
+
+```sql
+-- Reference datetime used in all examples below
+DECLARE @dt DATETIME = '2026-03-04 14:07:35.123';
+
+-- Or use today's date/time
+-- DECLARE @dt DATETIME = GETDATE();
+```
+
+---
+
+## Complete Style Code Reference
+
+### Default / USA / European Formats
+
+```sql
+DECLARE @dt DATETIME = '2026-03-04 14:07:35.123';
+
+SELECT
+    CONVERT(VARCHAR, @dt, 0)   AS [Style 0],   -- Mar  4 2026  2:07PM
+    CONVERT(VARCHAR, @dt, 1)   AS [Style 1],   -- 03/04/26
+    CONVERT(VARCHAR, @dt, 2)   AS [Style 2],   -- 26.03.04
+    CONVERT(VARCHAR, @dt, 3)   AS [Style 3],   -- 04/03/26
+    CONVERT(VARCHAR, @dt, 4)   AS [Style 4],   -- 04.03.26
+    CONVERT(VARCHAR, @dt, 5)   AS [Style 5],   -- 04-03-26
+    CONVERT(VARCHAR, @dt, 6)   AS [Style 6],   -- 04 Mar 26
+    CONVERT(VARCHAR, @dt, 7)   AS [Style 7],   -- Mar 04, 26
+    CONVERT(VARCHAR, @dt, 8)   AS [Style 8],   -- 14:07:35
+    CONVERT(VARCHAR, @dt, 9)   AS [Style 9],   -- Mar  4 2026  2:07:35:123PM
+    CONVERT(VARCHAR, @dt, 10)  AS [Style 10],  -- 03-04-26
+    CONVERT(VARCHAR, @dt, 11)  AS [Style 11],  -- 26/03/04
+    CONVERT(VARCHAR, @dt, 12)  AS [Style 12],  -- 260304
+    CONVERT(VARCHAR, @dt, 13)  AS [Style 13],  -- 04 Mar 2026 14:07:35:123
+    CONVERT(VARCHAR, @dt, 14)  AS [Style 14];  -- 14:07:35:123
+```
+
+### Four-Digit Year Formats (100-series)
+
+Adding **100** to a style code produces the same format with a **4-digit year**:
+
+```sql
+DECLARE @dt DATETIME = '2026-03-04 14:07:35.123';
+
+SELECT
+    CONVERT(VARCHAR, @dt, 100)  AS [Style 100],  -- Mar  4 2026  2:07PM
+    CONVERT(VARCHAR, @dt, 101)  AS [Style 101],  -- 03/04/2026
+    CONVERT(VARCHAR, @dt, 102)  AS [Style 102],  -- 2026.03.04
+    CONVERT(VARCHAR, @dt, 103)  AS [Style 103],  -- 04/03/2026
+    CONVERT(VARCHAR, @dt, 104)  AS [Style 104],  -- 04.03.2026
+    CONVERT(VARCHAR, @dt, 105)  AS [Style 105],  -- 04-03-2026
+    CONVERT(VARCHAR, @dt, 106)  AS [Style 106],  -- 04 Mar 2026
+    CONVERT(VARCHAR, @dt, 107)  AS [Style 107],  -- Mar 04, 2026
+    CONVERT(VARCHAR, @dt, 108)  AS [Style 108],  -- 14:07:35
+    CONVERT(VARCHAR, @dt, 109)  AS [Style 109],  -- Mar  4 2026  2:07:35:123PM
+    CONVERT(VARCHAR, @dt, 110)  AS [Style 110],  -- 03-04-2026
+    CONVERT(VARCHAR, @dt, 111)  AS [Style 111],  -- 2026/03/04
+    CONVERT(VARCHAR, @dt, 112)  AS [Style 112],  -- 20260304
+    CONVERT(VARCHAR, @dt, 113)  AS [Style 113],  -- 04 Mar 2026 14:07:35:123
+    CONVERT(VARCHAR, @dt, 114)  AS [Style 114];  -- 14:07:35:123
+```
+
+### ISO 8601 and Database-Standard Formats
+
+These are the most common formats for APIs, logging, and cross-system compatibility:
+
+```sql
+DECLARE @dt DATETIME = '2026-03-04 14:07:35.123';
+
+SELECT
+    CONVERT(VARCHAR, @dt, 20)   AS [Style 20],   -- 2026-03-04 14:07:35
+    CONVERT(VARCHAR, @dt, 21)   AS [Style 21],   -- 2026-03-04 14:07:35.123
+    CONVERT(VARCHAR, @dt, 22)   AS [Style 22],   -- 03/04/26  2:07:35 PM
+    CONVERT(VARCHAR, @dt, 23)   AS [Style 23],   -- 2026-03-04
+    CONVERT(VARCHAR, @dt, 24)   AS [Style 24],   -- 14:07:35
+    CONVERT(VARCHAR, @dt, 25)   AS [Style 25],   -- 2026-03-04 14:07:35.123
+    CONVERT(VARCHAR, @dt, 120)  AS [Style 120],  -- 2026-03-04 14:07:35
+    CONVERT(VARCHAR, @dt, 121)  AS [Style 121];  -- 2026-03-04 14:07:35.123
+```
+
+> **Style 23** (`YYYY-MM-DD`) is the most portable date-only format — use this for API responses, file names, and log timestamps.
+
+> **Style 120** (`YYYY-MM-DD HH:MI:SS`) is the ODBC canonical datetime — use this for query parameters and WHERE clauses.
+
+### Hijri (Arabic) Calendar Formats
+
+SQL Server has built-in support for Saudi/Hijri dates:
+
+```sql
+DECLARE @dt DATETIME = '2026-03-04 14:07:35.123';
+
+SELECT
+    CONVERT(VARCHAR, @dt, 130)  AS [Style 130],  -- 4/09/1447  2:07:35:123PM
+    CONVERT(VARCHAR, @dt, 131)  AS [Style 131];  -- 4/09/1447  14:07:35:123
+```
+
+---
+
+## All Styles at a Glance
+
+Run this single query to see **all commonly used styles** and their output side by side:
+
+```sql
+DECLARE @dt DATETIME = '2026-03-04 14:07:35.123';
+
+SELECT style, result FROM (VALUES
+    (0,   CONVERT(VARCHAR(50), @dt, 0)),
+    (1,   CONVERT(VARCHAR(50), @dt, 1)),
+    (2,   CONVERT(VARCHAR(50), @dt, 2)),
+    (3,   CONVERT(VARCHAR(50), @dt, 3)),
+    (4,   CONVERT(VARCHAR(50), @dt, 4)),
+    (5,   CONVERT(VARCHAR(50), @dt, 5)),
+    (6,   CONVERT(VARCHAR(50), @dt, 6)),
+    (7,   CONVERT(VARCHAR(50), @dt, 7)),
+    (8,   CONVERT(VARCHAR(50), @dt, 8)),
+    (9,   CONVERT(VARCHAR(50), @dt, 9)),
+    (10,  CONVERT(VARCHAR(50), @dt, 10)),
+    (11,  CONVERT(VARCHAR(50), @dt, 11)),
+    (12,  CONVERT(VARCHAR(50), @dt, 12)),
+    (13,  CONVERT(VARCHAR(50), @dt, 13)),
+    (14,  CONVERT(VARCHAR(50), @dt, 14)),
+    (20,  CONVERT(VARCHAR(50), @dt, 20)),
+    (21,  CONVERT(VARCHAR(50), @dt, 21)),
+    (22,  CONVERT(VARCHAR(50), @dt, 22)),
+    (23,  CONVERT(VARCHAR(50), @dt, 23)),
+    (24,  CONVERT(VARCHAR(50), @dt, 24)),
+    (25,  CONVERT(VARCHAR(50), @dt, 25)),
+    (100, CONVERT(VARCHAR(50), @dt, 100)),
+    (101, CONVERT(VARCHAR(50), @dt, 101)),
+    (102, CONVERT(VARCHAR(50), @dt, 102)),
+    (103, CONVERT(VARCHAR(50), @dt, 103)),
+    (104, CONVERT(VARCHAR(50), @dt, 104)),
+    (105, CONVERT(VARCHAR(50), @dt, 105)),
+    (106, CONVERT(VARCHAR(50), @dt, 106)),
+    (107, CONVERT(VARCHAR(50), @dt, 107)),
+    (108, CONVERT(VARCHAR(50), @dt, 108)),
+    (109, CONVERT(VARCHAR(50), @dt, 109)),
+    (110, CONVERT(VARCHAR(50), @dt, 110)),
+    (111, CONVERT(VARCHAR(50), @dt, 111)),
+    (112, CONVERT(VARCHAR(50), @dt, 112)),
+    (113, CONVERT(VARCHAR(50), @dt, 113)),
+    (114, CONVERT(VARCHAR(50), @dt, 114)),
+    (120, CONVERT(VARCHAR(50), @dt, 120)),
+    (121, CONVERT(VARCHAR(50), @dt, 121)),
+    (130, CONVERT(VARCHAR(50), @dt, 130)),
+    (131, CONVERT(VARCHAR(50), @dt, 131))
+) AS t(style, result)
+ORDER BY style;
+```
+
+---
+
+## Style Code Quick-Reference Table
+
+| Style | Format Pattern            | Example Output                    | Use Case                   |
+|-------|---------------------------|-----------------------------------|----------------------------|
+| 0     | Mon DD YYYY HH:MMAM/PM    | `Mar  4 2026  2:07PM`             | Default display            |
+| 1     | MM/DD/YY                  | `03/04/26`                        | US short date              |
+| 2     | YY.MM.DD                  | `26.03.04`                        | ANSI short date            |
+| 3     | DD/MM/YY                  | `04/03/26`                        | British/French short       |
+| 4     | DD.MM.YY                  | `04.03.26`                        | German short               |
+| 5     | DD-MM-YY                  | `04-03-26`                        | Italian short              |
+| 6     | DD Mon YY                 | `04 Mar 26`                       | Abbreviated month          |
+| 7     | Mon DD, YY                | `Mar 04, 26`                      | Named month short          |
+| 8     | HH:MI:SS                  | `14:07:35`                        | Time only (24h)            |
+| 9     | Mon DD YYYY HH:MI:SS:mssAM| `Mar  4 2026  2:07:35:123PM`      | Default + milliseconds     |
+| 10    | MM-DD-YY                  | `03-04-26`                        | USA dashes short           |
+| 11    | YY/MM/DD                  | `26/03/04`                        | Japan short                |
+| 12    | YYMMDD                    | `260304`                          | ISO short compact          |
+| 13    | DD Mon YYYY HH:MI:SS:mmm  | `04 Mar 2026 14:07:35:123`        | European with milliseconds |
+| 14    | HH:MI:SS:mmm              | `14:07:35:123`                    | Time with milliseconds     |
+| 20    | YYYY-MM-DD HH:MI:SS       | `2026-03-04 14:07:35`             | ODBC canonical             |
+| 21    | YYYY-MM-DD HH:MI:SS.mmm   | `2026-03-04 14:07:35.123`         | ODBC + milliseconds        |
+| 22    | MM/DD/YY HH:MI:SS AM      | `03/04/26  2:07:35 PM`            | US with time               |
+| **23**| **YYYY-MM-DD**            | **`2026-03-04`**                  | **ISO 8601 date only** ✅  |
+| 24    | HH:MI:SS                  | `14:07:35`                        | ODBC time only             |
+| 25    | YYYY-MM-DD HH:MI:SS.mmm   | `2026-03-04 14:07:35.123`         | ISO 8601 + ms              |
+| 100   | Mon DD YYYY HH:MMAM/PM    | `Mar  4 2026  2:07PM`             | Default 4-digit year       |
+| 101   | MM/DD/YYYY                | `03/04/2026`                      | US date 4-digit year       |
+| 102   | YYYY.MM.DD                | `2026.03.04`                      | ANSI date 4-digit year     |
+| 103   | DD/MM/YYYY                | `04/03/2026`                      | British 4-digit year       |
+| 104   | DD.MM.YYYY                | `04.03.2026`                      | German 4-digit year        |
+| 105   | DD-MM-YYYY                | `04-03-2026`                      | Italian 4-digit year       |
+| 106   | DD Mon YYYY               | `04 Mar 2026`                     | Named month 4-digit year   |
+| 107   | Mon DD, YYYY              | `Mar 04, 2026`                    | US named month full year   |
+| 108   | HH:MI:SS                  | `14:07:35`                        | Time only (24h)            |
+| 109   | Mon DD YYYY HH:MI:SS:mssAM| `Mar  4 2026  2:07:35:123PM`      | + ms + 4-digit year        |
+| 110   | MM-DD-YYYY                | `03-04-2026`                      | USA dashes 4-digit year    |
+| 111   | YYYY/MM/DD                | `2026/03/04`                      | Japan 4-digit year         |
+| 112   | YYYYMMDD                  | `20260304`                        | ISO compact (8 digits)     |
+| 113   | DD Mon YYYY HH:MI:SS:mmm  | `04 Mar 2026 14:07:35:123`        | European full              |
+| 114   | HH:MI:SS:mmm              | `14:07:35:123`                    | Time + ms (24h)            |
+| 120   | YYYY-MM-DD HH:MI:SS       | `2026-03-04 14:07:35`             | ODBC canonical (4-digit)✅ |
+| 121   | YYYY-MM-DD HH:MI:SS.mmm   | `2026-03-04 14:07:35.123`         | ODBC + ms (4-digit) ✅     |
+| 130   | D/MM/YYYY HH:MI:SS:mssAM  | `4/09/1447  2:07:35:123PM`        | Hijri calendar             |
+| 131   | D/MM/YYYY HH:MI:SS:mmm    | `4/09/1447  14:07:35:123`         | Hijri 24h                  |
+
+---
+
+## Practical Examples — Real-World Queries
+
+### Store formatted date in a column
+
+```sql
+-- Report table with pre-formatted date string
+SELECT
+    OrderID,
+    CustomerName,
+    CONVERT(VARCHAR(10), OrderDate, 23)  AS OrderDateISO,   -- 2026-03-04
+    CONVERT(VARCHAR(20), OrderDate, 120) AS OrderDateFull,  -- 2026-03-04 14:07:35
+    CONVERT(VARCHAR(8),  OrderDate, 14)  AS OrderTime       -- 14:07:35:123
+FROM Sales.Orders
+WHERE OrderDate >= '2026-01-01';
+```
+
+### Filter records by formatted date string
+
+```sql
+-- Find all orders placed on a specific date
+SELECT *
+FROM Sales.Orders
+WHERE CONVERT(VARCHAR(10), OrderDate, 23) = '2026-03-04';
+
+-- ✅ Better: use native date comparison (index-friendly)
+WHERE OrderDate >= '2026-03-04'
+  AND OrderDate <  '2026-03-05';
+```
+
+### Build a filename-safe timestamp
+
+```sql
+-- Generate a timestamp for file export names: 20260304_140735
+SELECT
+    CONVERT(VARCHAR, GETDATE(), 112)          -- 20260304
+    + '_'
+    + REPLACE(CONVERT(VARCHAR, GETDATE(), 108), ':', '') -- 140735
+    AS ExportFileName;
+```
+
+### Get month name and year for reports
+
+```sql
+-- e.g., "Mar 2026"
+SELECT CONVERT(VARCHAR(8), GETDATE(), 7) AS ReportPeriod;
+-- Result: Mar 04, 26
+
+-- Full month name approach using FORMAT()
+SELECT FORMAT(GETDATE(), 'MMMM yyyy', 'en-US') AS ReportPeriod;
+-- Result: March 2026
+```
+
+### Date parts in WHERE clause
+
+```sql
+-- Orders in the compact YYYYMMDD range
+SELECT OrderID, OrderDate
+FROM Sales.Orders
+WHERE CONVERT(CHAR(8), OrderDate, 112) BETWEEN '20260101' AND '20261231';
+```
+
+---
+
+## FORMAT() Function — Modern Alternative
+
+SQL Server 2012+ includes `FORMAT()` which uses .NET format strings and supports locale-aware output:
+
+```sql
+SELECT
+    FORMAT(GETDATE(), 'yyyy-MM-dd')                   AS ISO_Date,         -- 2026-03-04
+    FORMAT(GETDATE(), 'yyyy-MM-dd HH:mm:ss')          AS ISO_DateTime,     -- 2026-03-04 14:07:35
+    FORMAT(GETDATE(), 'dd/MM/yyyy')                   AS British_Date,     -- 04/03/2026
+    FORMAT(GETDATE(), 'MM/dd/yyyy')                   AS US_Date,          -- 03/04/2026
+    FORMAT(GETDATE(), 'MMMM dd, yyyy')                AS LongDate_EN,      -- March 04, 2026
+    FORMAT(GETDATE(), 'dddd, MMMM dd, yyyy')          AS FullDate_EN,      -- Tuesday, March 04, 2026
+    FORMAT(GETDATE(), 'HH:mm:ss')                     AS Time_24h,         -- 14:07:35
+    FORMAT(GETDATE(), 'hh:mm:ss tt')                  AS Time_12h,         -- 02:07:35 PM
+    FORMAT(GETDATE(), 'yyyyMMdd_HHmmss')              AS FileSafeName,     -- 20260304_140735
+    FORMAT(GETDATE(), 'yyyy-MM-dd', 'id-ID')          AS Indonesian_Date,  -- 2026-03-04
+    FORMAT(GETDATE(), 'dddd, dd MMMM yyyy', 'id-ID')  AS Indonesian_Long;  -- Selasa, 04 Maret 2026
+```
+
+### CONVERT() vs FORMAT() — When to Use Which
+
+| Scenario                              | Use        | Reason                                      |
+|---------------------------------------|------------|---------------------------------------------|
+| High-volume queries, reports          | `CONVERT()` | Faster, no CLR overhead                    |
+| Locale-aware display (month names)    | `FORMAT()`  | Supports culture codes (`'id-ID'`, `'en-US'`)  |
+| Simple ISO date-only (`YYYY-MM-DD`)   | `CONVERT(, 23)` | Simpler, slightly faster               |
+| Custom format strings (`yyyyMMdd_HHmmss`) | `FORMAT()` | Cleaner syntax                         |
+| SQL Server 2008 compatibility         | `CONVERT()` | `FORMAT()` requires SQL Server 2012+   |
+
+> **Performance note**: `FORMAT()` is significantly slower than `CONVERT()` on large datasets because it calls into the .NET CLR. For `SELECT` on millions of rows, prefer `CONVERT()`.
+
+---
+
+## Converting Back — String to Date
+
+When you receive a date string and need to convert it back to a native `DATE` or `DATETIME`:
+
+```sql
+-- String to DATE (ISO format)
+SELECT CONVERT(DATE,     '2026-03-04',          23)  AS AsDate;       -- 2026-03-04
+SELECT CONVERT(DATETIME, '2026-03-04 14:07:35', 120) AS AsDateTime;   -- 2026-03-04 14:07:35.000
+SELECT CONVERT(DATETIME, '2026-03-04 14:07:35.123', 121) AS AsDateTimeMs; -- 2026-03-04 14:07:35.123
+
+-- Using PARSE() (SQL Server 2012+ — culture-aware)
+SELECT PARSE('04/03/2026' AS DATE USING 'en-GB') AS BritishDateParsed; -- 2026-03-04
+SELECT PARSE('03/04/2026' AS DATE USING 'en-US') AS USDDateParsed;     -- 2026-03-04
+
+-- Using TRY_CONVERT() — returns NULL instead of error on invalid input
+SELECT TRY_CONVERT(DATE, 'not-a-date', 23) AS Safe;   -- NULL (no error)
+SELECT TRY_CONVERT(DATE, '2026-03-04',  23) AS Good;  -- 2026-03-04
+```
+
+---
+
+## Common Mistakes to Avoid
+
+### 1. Wrong VARCHAR length truncates the output
+
+```sql
+-- ❌ Wrong — truncates to 10 chars
+SELECT CONVERT(VARCHAR(10), GETDATE(), 109);
+-- Output: Mar  4 2026  (cut off!)
+
+-- ✅ Correct — enough room for full output
+SELECT CONVERT(VARCHAR(50), GETDATE(), 109);
+-- Output: Mar  4 2026  2:07:35:123PM
+```
+
+### 2. Using CONVERT in a WHERE clause breaks index scans
+
+```sql
+-- ❌ Slow — table scan, no index use
+WHERE CONVERT(VARCHAR, OrderDate, 23) = '2026-03-04'
+
+-- ✅ Fast — sargable, index-friendly
+WHERE OrderDate >= '2026-03-04' AND OrderDate < '2026-03-05'
+```
+
+### 3. SET DATEFORMAT affects implicit conversion
+
+```sql
+-- ❌ Ambiguous — affected by session DATEFORMAT setting
+SELECT CONVERT(DATETIME, '03/04/2026');
+
+-- ✅ Unambiguous — always interpreted correctly
+SELECT CONVERT(DATETIME, '2026-03-04', 23);
+```
+
+### 4. DATETIME vs DATE vs DATETIME2
+
+```sql
+-- DATETIME stores milliseconds as 0, 3, or 7 ms increments
+-- DATETIME2 stores full precision (100ns)
+DECLARE @dt  DATETIME  = '2026-03-04 14:07:35.124';  -- stored as .123
+DECLARE @dt2 DATETIME2 = '2026-03-04 14:07:35.1234567';
+
+SELECT CONVERT(VARCHAR, @dt,  121),  -- 2026-03-04 14:07:35.123
+       CONVERT(VARCHAR, @dt2, 121);  -- 2026-03-04 14:07:35.123 (truncated for style 121)
+```
+
+---
+
+## Date Arithmetic with DATEADD and DATEDIFF
+
+Combine formatting with date arithmetic for common use cases:
+
+```sql
+-- Today, yesterday, start of month, end of month
+SELECT
+    CONVERT(VARCHAR, GETDATE(),                             23) AS Today,
+    CONVERT(VARCHAR, DATEADD(DAY, -1, GETDATE()),           23) AS Yesterday,
+    CONVERT(VARCHAR, DATEADD(DAY,  1, GETDATE()),           23) AS Tomorrow,
+    CONVERT(VARCHAR, DATEADD(MONTH, DATEDIFF(MONTH, 0, GETDATE()), 0), 23) AS StartOfMonth,
+    CONVERT(VARCHAR, DATEADD(DAY, -1, DATEADD(MONTH, DATEDIFF(MONTH, 0, GETDATE()) + 1, 0)), 23) AS EndOfMonth,
+    CONVERT(VARCHAR, DATEADD(YEAR,  DATEDIFF(YEAR, 0, GETDATE()), 0), 23) AS StartOfYear;
+
+-- Results for 2026-03-04:
+-- Today         : 2026-03-04
+-- Yesterday     : 2026-03-03
+-- Tomorrow      : 2026-03-05
+-- StartOfMonth  : 2026-03-01
+-- EndOfMonth    : 2026-03-31
+-- StartOfYear   : 2026-01-01
+```
+
+---
+
+## Summary
+
+| Need                          | Function            | Style |
+|-------------------------------|---------------------|-------|
+| Date-only ISO (`2026-03-04`)  | `CONVERT(VARCHAR, d, 23)`  | 23  |
+| DateTime ODBC (`2026-03-04 14:07:35`) | `CONVERT(VARCHAR, d, 120)` | 120 |
+| DateTime + ms (`2026-03-04 14:07:35.123`) | `CONVERT(VARCHAR, d, 121)` | 121 |
+| Compact key (`20260304`)      | `CONVERT(VARCHAR, d, 112)` | 112 |
+| US date (`03/04/2026`)        | `CONVERT(VARCHAR, d, 101)` | 101 |
+| British date (`04/03/2026`)   | `CONVERT(VARCHAR, d, 103)` | 103 |
+| Time only (`14:07:35`)        | `CONVERT(VARCHAR, d, 108)` | 108 |
+| Month name (`Mar 04, 2026`)   | `CONVERT(VARCHAR, d, 107)` | 107 |
+| Locale-aware full name        | `FORMAT(d, 'MMMM dd, yyyy', 'en-US')` | — |
+
+**Quick rule**: When in doubt, use style **23** for dates and style **120** for datetimes. They are ISO-standard, unambiguous, and universally understood.
