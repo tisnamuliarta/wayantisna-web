@@ -26,6 +26,19 @@ export function getMDXComponents(components?: MDXComponents): MDXComponents {
 
             return <ImageZoom {...imageProps} />;
         },
+        // custom list renderers with consistent spacing and indent
+        ul: ({ className, ...props }: HTMLAttributes<HTMLUListElement>) => (
+            <ul
+                className={cn('ml-6 list-disc list-inside space-y-1', className)}
+                {...props}
+            />
+        ),
+        ol: ({ className, ...props }: HTMLAttributes<HTMLOListElement>) => (
+            <ol
+                className={cn('ml-6 list-decimal list-inside space-y-1', className)}
+                {...props}
+            />
+        ),
     };
 
     return {
