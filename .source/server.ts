@@ -1,5 +1,6 @@
 // @ts-nocheck
-import * as __fd_glob_3 from "../src/content/blog/sql-server-date-format-convert.mdx?collection=blog"
+import * as __fd_glob_4 from "../src/content/blog/sql-server-date-format-convert.mdx?collection=blog"
+import * as __fd_glob_3 from "../src/content/blog/optimize-sql-server-query-performance.mdx?collection=blog"
 import * as __fd_glob_2 from "../src/content/blog/modern-frontend-development-react-19.mdx?collection=blog"
 import * as __fd_glob_1 from "../src/content/blog/database-optimization-postgresql.mdx?collection=blog"
 import * as __fd_glob_0 from "../src/content/blog/building-scalable-rest-apis-laravel.mdx?collection=blog"
@@ -11,4 +12,4 @@ const create = server<typeof Config, import("fumadocs-mdx/runtime/types").Intern
   }
 }>({"doc":{"passthroughs":["extractedReferences"]}});
 
-export const blog = await create.docs("blog", "src/content/blog", {}, {"building-scalable-rest-apis-laravel.mdx": __fd_glob_0, "database-optimization-postgresql.mdx": __fd_glob_1, "modern-frontend-development-react-19.mdx": __fd_glob_2, "sql-server-date-format-convert.mdx": __fd_glob_3, });
+export const blog = await create.docs("blog", "src/content/blog", {}, {"building-scalable-rest-apis-laravel.mdx": __fd_glob_0, "database-optimization-postgresql.mdx": __fd_glob_1, "modern-frontend-development-react-19.mdx": __fd_glob_2, "optimize-sql-server-query-performance.mdx": __fd_glob_3, "sql-server-date-format-convert.mdx": __fd_glob_4, });
