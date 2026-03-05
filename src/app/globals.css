@@ -56,15 +56,22 @@ body::before {
 }
 
 .prose h2 {
-  @apply mt-10 text-3xl font-semibold text-slate-900 dark:text-slate-100;
+  @apply mt-10 text-3xl font-semibold text-black dark:text-white;
 }
 
 .prose h3 {
-  @apply mt-8 text-2xl font-semibold text-slate-900 dark:text-slate-100;
+  @apply mt-8 text-2xl font-semibold text-black dark:text-white;
 }
 
 .prose h4 {
-  @apply mt-6 text-xl font-semibold text-slate-900 dark:text-slate-100;
+  @apply mt-6 text-xl font-semibold text-black dark:text-white;
+}
+
+/* remove blue link color on headings with automatic anchors */
+.prose h2 a,
+.prose h3 a,
+.prose h4 a {
+  @apply text-black dark:text-white no-underline;
 }
 
 .prose p {
@@ -159,7 +166,14 @@ body::before {
 }
 
 .blog-article a {
-  color: #0369a1;
+  color: #0f172a;
+  /* dark black shade matching headers */
+  text-decoration: none;
+  transition: text-decoration 0.2s;
+}
+
+.blog-article a:hover {
+  text-decoration: underline;
 }
 
 .blog-article ul,
@@ -246,7 +260,7 @@ body::before {
 }
 
 .dark .blog-article a {
-  color: #8bd8ff;
+  color: #ffffff;
 }
 
 .dark .blog-article li {
